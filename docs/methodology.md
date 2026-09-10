@@ -13,19 +13,37 @@ phase for a thesis project).
   the Colombian Amazon.
 - Baseline: "Eyes in the Sky" (Acosta-Bernal et al., 2025), YOLOv11 on the
   same 1,657-frame set, recall 0.425 for SDZI (box-level).
-- Open question affecting this phase: whether the source imagery is
-  thermal/FLIR or RGB — see `decisions.md`. This affects preprocessing
-  (channel count, normalization) and which prior work in the antecedentes
-  section is a direct comparison point.
+- **Resolved**: the source imagery is RGB, never thermal/FLIR — confirmed
+  with the team/advisor (see `decisions.md`). Preprocessing assumes
+  3-channel RGB (already how `models/panoptic_fcn.py`'s encoder is built);
+  the antecedentes section's thermal-imagery references are no longer
+  direct comparison points and need a documentation cleanup pass
+  (Manuela's document edit, not a repo change).
 
 ## 2. Data preparation
 
-- **Source**: `Imagenes.zip` + `Etiquetas.zip` from the shared OneDrive —
-  identified as the canonical source by Jorge's own inventory code
-  (`"Imagenes.zip + Etiquetas.zip parecen el candidato más cercano al
-  conjunto reportado de 1657 frames"`), not the various
-  `Dataset_Balanceado*` / `flir_base_*` archives, which his pipeline uses
-  only as cross-checks.
+- **Source**: canonically `Imagenes.zip` + `Etiquetas.zip` from the shared
+  OneDrive, per Jorge's own inventory code (`"Imagenes.zip + Etiquetas.zip
+  parecen el candidato más cercano al conjunto reportado de 1657
+  frames"`). In practice, this project is currently working against
+  `dataset_split_completo` instead (already downloaded, complete, and
+  verified well-formed via `data/manifest.py` — see below), since
+  `Imagenes.zip`/`Etiquetas.zip` haven't been downloaded yet; Jorge's code
+  treats `dataset_split_completo` as a cross-check archive rather than the
+  primary source, so this substitution is tracked as a decision to revisit
+  in `decisions.md`, not a settled equivalence.
+- **Manifest loading and integrity checks** (`data/manifest.py`): parses a
+  YOLO-format dataset (`dataset.yaml` + per-split `images/`/`labels/`)
+  into typed records, defensively handling a broken split (missing `val/`,
+  images without a matching label file) rather than crashing — this is
+  exactly the shape of the *other* downloaded archive,
+  `flir_best_division_pr`, which is not currently usable as-is. Running
+  `panoptic-mining data manifest-summary <path>` against
+  `dataset_split_completo` confirmed it has no missing splits or labels,
+  1702 total frames (vs. Eyes in the Sky's reported 1657 — a 45-frame
+  discrepancy, unresolved), and a significant class imbalance for SDZI
+  (481 boxes vs. 4120 for building) that will need addressing during
+  training.
 - **Independent dense ground truth**: a validation/test subset gets real
   pixel-level masks, used only for evaluation — never for training. This
   is what makes the PQ/SQ/RQ numbers trustworthy rather than an artifact
@@ -40,7 +58,13 @@ phase for a thesis project).
      usable as a training target.
   This was flagged in an earlier external review: previous drafts
   implicitly assumed box annotations already carried mask-level
-  supervision, which they do not.
+  supervision, which they do not. Real-data testing against
+  `dataset_split_completo` surfaced two issues since fixed: background
+  containment (the mask could leak far outside the box) and GrabCut
+  collapsing to almost nothing on texturally ambiguous classes like SDZI —
+  the pipeline now falls back to region-growing (flood-fill from the seed
+  points) and, failing that, the full box, exposing which method was used
+  via `PseudoMaskResult.method` for later auditing.
 - **Splits**: the original Eyes in the Sky split (1178 train / 107 val /
   372 test) has confirmed leakage — 141 train-test and 57 train-val
   overlaps, per Jorge's manifest audit. His leakage-safe split (via
@@ -52,13 +76,22 @@ phase for a thesis project).
 
 - **Base model**: Panoptic FCN (Li et al.), predicting stuff via a
   semantic branch and things via per-instance kernels generated from point
-  features.
+  features. Implemented as a runnable skeleton in `models/panoptic_fcn.py`
+  (placeholder conv-trunk encoder, not yet a real backbone; not yet
+  trained) — see `docs/architecture.md` for the current implementation
+  status and open items.
 - **Ablation / this project's specific contribution**: a spatial
   context-fusion mechanism that lets the stuff and thing branches inform
-  each other (`models/context_fusion.py`) — the intuition being that
-  nearby machinery/dredges strongly disambiguate SDZI regions that would
-  otherwise look like ordinary bare earth. This isolates the ablation:
-  base Panoptic FCN vs. Panoptic FCN + context fusion.
+  each other (`models/context_fusion.py`, also implemented as a runnable
+  skeleton) — the intuition being that nearby machinery/dredges strongly
+  disambiguate SDZI regions that would otherwise look like ordinary bare
+  earth. This isolates the ablation: base Panoptic FCN vs. Panoptic FCN +
+  context fusion.
+- **Open class-count mismatch**: both model skeletons default to the
+  classes actually labeled in `dataset_split_completo` today — 2 stuff
+  (river, SDZI), 3 thing (vehicle, building, road) — not the 6 thing
+  categories in the thesis objectives (machinery, dredges, camps,
+  structures, containers, vehicles). See `decisions.md`; unresolved.
 - **Terminology**: SDZI throughout, consistent with the baseline
   (previously "deforestación" in earlier drafts — since corrected).
 

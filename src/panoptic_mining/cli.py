@@ -15,14 +15,38 @@ import cv2
 import numpy as np
 import typer
 
+from panoptic_mining.data.manifest import load_yolo_manifest
 from panoptic_mining.data.points import box_to_pseudo_mask, sample_interior_points
 from panoptic_mining.evaluation import metrics as metrics_module
 
 app = typer.Typer(help="Panoptic segmentation pipeline for illegal mining detection.")
+data_app = typer.Typer(help="Dataset manifest loading and integrity checks.")
 points_app = typer.Typer(help="Box -> interior points -> pseudo-mask utilities.")
 evaluate_app = typer.Typer(help="Scoring: PQ/SQ/RQ, stuff IoU/F1, thing AP, baseline comparability.")
+app.add_typer(data_app, name="data")
 app.add_typer(points_app, name="points")
 app.add_typer(evaluate_app, name="evaluate")
+
+
+@data_app.command("manifest-summary")
+def data_manifest_summary(
+    data_root: Path = typer.Argument(..., help="Path to the YOLO dataset root (contains dataset.yaml)."),
+) -> None:
+    """Load a YOLO-format dataset and print per-split/per-class counts plus
+    any integrity issues (missing splits, frames without labels) — run
+    this before trusting DATA_ROOT for training. Mirrors Jorge's own
+    ``manifest-summary`` command in flir-leakage-pipeline."""
+    manifest = load_yolo_manifest(data_root)
+    summary = manifest.summary()
+    typer.echo(json.dumps(summary, indent=2))
+    if summary["missing_splits"]:
+        typer.echo(f"WARNING: missing splits: {summary['missing_splits']}", err=True)
+    for split, stats in summary["per_split"].items():
+        if stats["frames_without_labels"] > 0:
+            typer.echo(
+                f"WARNING: {split} has {stats['frames_without_labels']} frame(s) with no labels file",
+                err=True,
+            )
 
 
 @points_app.command("pseudo-mask")
@@ -48,6 +72,7 @@ def points_pseudo_mask(
         json.dumps(
             {
                 "output_path": str(output_path),
+                "method": result.method,
                 "converged": result.converged,
                 "n_points": len(result.points),
                 "mask_pixel_count": int(result.mask.sum()),
@@ -90,10 +115,13 @@ def evaluate_panoptic_quality(
 def status() -> None:
     """Print what's implemented vs. planned (see README for detail)."""
     typer.echo(
-        "Implemented: data.points (box->points->pseudo-mask), evaluation.metrics (PQ/SQ/RQ, "
-        "stuff IoU/F1, thing AP, baseline box-equivalence).\n"
-        "Planned (blocked on data access / Jorge's leakage-safe split): data.manifest, "
-        "models.panoptic_fcn, models.context_fusion, training.train, baseline.yolo_eval.\n"
+        "Implemented: data.points (box->points->pseudo-mask), data.manifest (YOLO dataset "
+        "loading + integrity checks), evaluation.metrics (PQ/SQ/RQ, stuff IoU/F1, thing AP, "
+        "baseline box-equivalence), models.panoptic_fcn + models.context_fusion (runnable "
+        "skeletons, not yet trained — placeholder encoder, class counts pending team/advisor "
+        "resolution, see docs/decisions.md).\n"
+        "Planned: training.train, baseline.yolo_eval (blocked on downloading yolov11_best100.pt), "
+        "leakage-safe split arm of the evaluation matrix (blocked on Jorge's split).\n"
         "See docs/decisions.md for the open questions this depends on."
     )
 

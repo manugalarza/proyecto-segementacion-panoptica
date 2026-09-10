@@ -107,22 +107,47 @@ def test_box_to_pseudo_mask_never_extends_past_box_plus_margin():
     )
 
 
-def test_box_to_pseudo_mask_falls_back_when_foreground_too_small():
-    """Regression test: on real SDZI annotations, GrabCut sometimes
+def test_box_to_pseudo_mask_falls_back_to_flood_fill_on_uniform_color():
+    """Regression scenario: on real SDZI annotations, GrabCut sometimes
     reclassifies almost the entire box as background because disturbed
     earth doesn't stand out in color from the surrounding terrain, leaving
     only the seed pixels as 'foreground' (observed: 5 px out of a ~17,000
-    px box). A uniform-color box (no separation from background at all) is
-    the same failure mode: without a minimum-coverage fallback, the
-    'pseudo-mask' would be a handful of isolated pixels, useless as a
-    training target. It should instead fall back to the full box and
-    report converged=False."""
+    px box). A uniform-color image (no contrast at all, the extreme case
+    of 'no color separation') triggers exactly that GrabCut failure — but
+    flood-fill's local, neighbor-by-neighbor growing has no trouble here
+    (every neighbor is an exact color match), so the pipeline should
+    recover via method='flood_fill' rather than giving up on the full box."""
     size = 100
     image = np.full((size, size, 3), 128, dtype=np.uint8)  # uniform gray, no contrast
     box = (30.0, 30.0, 60.0, 60.0)
     box_margin = 2
     result = box_to_pseudo_mask(image, box, box_margin=box_margin)
 
+    assert result.method == "flood_fill"
+    assert result.converged is True
+    x_min, y_min, x_max, y_max = box
+    expected_full_box = np.zeros((size, size), dtype=np.uint8)
+    expected_full_box[
+        max(0, int(y_min) - box_margin) : min(size, int(y_max) + box_margin),
+        max(0, int(x_min) - box_margin) : min(size, int(x_max) + box_margin),
+    ] = 1
+    assert np.array_equal(result.mask, expected_full_box)
+
+
+def test_box_to_pseudo_mask_full_fallback_when_both_methods_fail():
+    """When even flood-fill can't find a coherent region — every pixel has
+    a distinct value (via a deterministic index pattern, no randomness),
+    so no neighbor is ever an exact/near match and GrabCut's global color
+    model has nothing consistent to key off either — the function should
+    give up and return the full box with method='full_box_fallback'."""
+    size = 100
+    idx = np.arange(size * size, dtype=np.uint8).reshape(size, size)
+    image = np.stack([idx] * 3, axis=-1)
+    box = (30.0, 30.0, 60.0, 60.0)
+    box_margin = 2
+    result = box_to_pseudo_mask(image, box, box_margin=box_margin)
+
+    assert result.method == "full_box_fallback"
     assert result.converged is False
     x_min, y_min, x_max, y_max = box
     expected_full_box = np.zeros((size, size), dtype=np.uint8)
@@ -131,3 +156,25 @@ def test_box_to_pseudo_mask_falls_back_when_foreground_too_small():
         max(0, int(x_min) - box_margin) : min(size, int(x_max) + box_margin),
     ] = 1
     assert np.array_equal(result.mask, expected_full_box)
+
+
+def test_flood_fill_region_growing_stays_within_box():
+    """Direct unit test of the private flood-fill helper: a uniform image
+    (guaranteed full growth from any seed) must still respect the box
+    bounds passed in, independent of whatever box_to_pseudo_mask does with
+    margins."""
+    from panoptic_mining.data.points import _flood_fill_region_growing
+
+    size = 50
+    image = np.full((size, size, 3), 200, dtype=np.uint8)
+    points = np.array([[25.0, 25.0]])
+    grown = _flood_fill_region_growing(
+        image, points, x_min=10, y_min=10, x_max=40, y_max=40, tolerance=10
+    )
+
+    assert grown.shape == (size, size)
+    assert grown[10:40, 10:40].all()  # fully grown inside a uniform box
+    assert not grown[:10, :].any()
+    assert not grown[40:, :].any()
+    assert not grown[:, :10].any()
+    assert not grown[:, 40:].any()
