@@ -50,14 +50,14 @@ Panoptic Quality (PQ), Segmentation Quality (SQ), Recognition Quality (RQ), IoU/
 
 ## Status
 
-- ✅ Box → points → pseudo-mask conversion implemented and unit-tested (no data dependency). Real-data testing on `dataset_split_completo` surfaced two bugs since fixed: background containment (mask was leaking far outside the box) and a missing fallback when GrabCut collapses to near-nothing on texturally ambiguous classes like SDZI.
-- ✅ Evaluation metrics (PQ/SQ/RQ, IoU/F1, precision/recall/mask AP, bbox-equivalence for baseline comparison) implemented and unit-tested on synthetic inputs.
-- ✅ Dataset manifest loading (`data/manifest.py`) implemented against `dataset_split_completo` — defensively handles a broken split (missing `val/`, images without a matching `labels/`), which is exactly the shape of the *other* downloaded archive, `flir_best_division_pr`. Run `panoptic-mining data manifest-summary <path>` to check a dataset before trusting it.
-- ✅ Model skeletons (`models/panoptic_fcn.py` base, `models/context_fusion.py` ablation) implemented and runnable end to end on CPU — encoder is a placeholder (small conv trunk, not yet a real ResNet+FPN backbone), and class counts (2 stuff / 3 thing) match what's actually labeled today, not the thesis objectives' 6 thing categories (open, see `docs/decisions.md`). Not yet trained.
-- ⏳ Training loop: **planned** — `dataset_split_completo` is downloaded so this is no longer blocked on data access per se, but still pending actual implementation.
-- ⏳ Baseline YOLO re-evaluation: **blocked** on downloading `yolov11_best100.pt` (only `yolov26_best100.pt`, a non-matching checkpoint, has been downloaded so far — see `.env`).
-- ⏳ Leakage-safe split arm of the evaluation matrix: **blocked** on Jorge's splitting stage.
-- ✅ RGB vs. thermal imagery: **resolved** — confirmed RGB, never thermal. See `docs/decisions.md` for the remaining (non-code) action this implies for the proposal document.
+- Box → points → pseudo-mask conversion implemented and unit-tested (no data dependency). Real-data testing on `dataset_split_completo` surfaced two bugs since fixed: background containment (mask was leaking far outside the box) and a missing fallback when GrabCut collapses to near-nothing on texturally ambiguous classes like SDZI.
+- Evaluation metrics (PQ/SQ/RQ, IoU/F1, precision/recall/mask AP, bbox-equivalence for baseline comparison) implemented and unit-tested on synthetic inputs.
+- Dataset manifest loading (`data/manifest.py`) implemented against `dataset_split_completo` — defensively handles a broken split (missing `val/`, images without a matching `labels/`), which is exactly the shape of the *other* downloaded archive, `flir_best_division_pr`. Run `panoptic-mining data manifest-summary <path>` to check a dataset before trusting it.
+- Model skeletons (`models/panoptic_fcn.py` base, `models/context_fusion.py` ablation) implemented and runnable end to end on CPU — encoder is a placeholder (small conv trunk, not yet a real ResNet+FPN backbone), and class counts (2 stuff / 3 thing) match what's actually labeled today, not the thesis objectives' 6 thing categories (open, see `docs/decisions.md`). Not yet trained.
+- Training loop: **planned** — `dataset_split_completo` is downloaded so this is no longer blocked on data access per se, but still pending actual implementation.
+- Baseline YOLO re-evaluation: **blocked** on downloading `yolov11_best100.pt` (only `yolov26_best100.pt`, a non-matching checkpoint, has been downloaded so far — see `.env`).
+- Leakage-safe split arm of the evaluation matrix: **blocked** on Jorge's splitting stage.
+- RGB vs. thermal imagery: **resolved** — confirmed RGB, never thermal. See `docs/decisions.md` for the remaining (non-code) action this implies for the proposal document.
 
 See `docs/decisions.md` for the open questions this status still depends on (thing-class count mismatch, exact data root contents).
 
