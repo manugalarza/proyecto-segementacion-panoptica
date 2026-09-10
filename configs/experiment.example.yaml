@@ -1,0 +1,29 @@
+# Example experiment config — copy to configs/experiment.yaml and edit.
+# Not consumed by any code yet (training.train is planned); this documents
+# the shape configs are expected to take once it is.
+
+experiment_name: "panoptic_fcn_context_fusion_ablation"
+seed: 0
+
+data:
+  data_root: "${DATA_ROOT}"          # see .env.example
+  split: "original"                    # "original" | "leakage_safe" (blocked until Jorge's split lands)
+  use_cleaned_video: false             # true once consuming Fernanda's HUD-removed/denoised output
+
+model:
+  variant: "base"                      # "base" | "context_fusion"
+  backbone: "resnet50"
+  num_stuff_classes: 2                 # river, sdzi
+  num_thing_classes: 6                 # machinery, dredges, camps, structures, containers, vehicles
+
+training:
+  batch_size: 8
+  epochs: 50
+  optimizer: "adamw"
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-4
+
+evaluation:
+  iou_threshold: 0.5
+  compare_against_baseline: true
+  baseline_weights: "${BASELINE_YOLO_WEIGHTS}"

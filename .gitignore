@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Entornos / credenciales
+.env
+*.env.local
+
+# Datos y modelos (pesados, no van al repo)
+data/
+datasets/
+*.mp4
+*.avi
+checkpoints/
+*.pt
+*.pth
+*.onnx
+*.ckpt
+artifacts/
+
+# Documentos de la propuesta 
+*.docx
+*.doc
+*.pdf
+*.zip
+
+# Logs / salidas de entrenamiento
+runs/
+logs/
+wandb/
+outputs/
+
+# SO / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Configs locales
+configs/experiment.yaml
