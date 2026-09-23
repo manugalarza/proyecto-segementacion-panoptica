@@ -82,7 +82,7 @@ class PanopticFCN(nn.Module):
 
     def __init__(
         self,
-        num_stuff_classes: int = 2,  # river, SDZI
+        num_stuff_classes: int = 3,  # river, SDZI, none (explicit background — see docs/decisions.md, 2026-09-20)
         num_thing_classes: int = 3,  # vehicle, building, road — see module docstring point 2
         kernel_dim: int = 64,
         encoder: nn.Module | None = None,

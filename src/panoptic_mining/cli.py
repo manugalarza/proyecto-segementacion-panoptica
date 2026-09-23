@@ -23,9 +23,11 @@ app = typer.Typer(help="Panoptic segmentation pipeline for illegal mining detect
 data_app = typer.Typer(help="Dataset manifest loading and integrity checks.")
 points_app = typer.Typer(help="Box -> interior points -> pseudo-mask utilities.")
 evaluate_app = typer.Typer(help="Scoring: PQ/SQ/RQ, stuff IoU/F1, thing AP, baseline comparability.")
+train_app = typer.Typer(help="Training: transfer-learning pretraining and fine-tuning (requires the 'vision' extra).")
 app.add_typer(data_app, name="data")
 app.add_typer(points_app, name="points")
 app.add_typer(evaluate_app, name="evaluate")
+app.add_typer(train_app, name="train")
 
 
 @data_app.command("manifest-summary")
@@ -111,17 +113,129 @@ def evaluate_panoptic_quality(
     typer.echo(json.dumps(summary, indent=2))
 
 
+@train_app.command("pretrain-transfer")
+def train_pretrain_transfer(
+    landcover_output_dir: Path = typer.Argument(..., help="Path to LandCover.ai's tiled 'output/' dir (produced by its bundled split.py — see docs/training.md), containing {id}.jpg + {id}_m.png pairs."),
+    split_file: Path = typer.Option(None, help="Optional train.txt/val.txt/test.txt (from the same zip) to restrict to one split's tile IDs."),
+    epochs: int = typer.Option(1, help="Number of pretraining epochs."),
+    batch_size: int = typer.Option(4, help="Batch size."),
+    learning_rate: float = typer.Option(1e-3, help="Adam learning rate."),
+    checkpoint_dir: Path = typer.Option(Path("checkpoints/pretrain"), help="Where to save per-epoch checkpoints."),
+    device: str = typer.Option("cpu", help="'cpu' or 'cuda'."),
+) -> None:
+    """Pretrain the shared encoder on LandCover.ai (forest/water/building/road
+    aerial imagery) before fine-tuning on our own mining dataset — see
+    data/transfer_datasets.py for why this dataset was chosen, per advisor
+    feedback to use transfer learning from forest/water segmentation.
+    Requires the 'vision' extra (`pip install -e ".[dev,vision]"`)."""
+    from panoptic_mining.data.transfer_datasets import (
+        LANDCOVER_STUFF_CLASSES,
+        LANDCOVER_THING_CLASSES,
+        LandCoverAIDataset,
+    )
+    from panoptic_mining.models.panoptic_fcn import PanopticFCN
+    from panoptic_mining.training.train import TrainConfig, train as run_training
+
+    dataset = LandCoverAIDataset(landcover_output_dir, split_file=str(split_file) if split_file else None)
+    model = PanopticFCN(
+        num_stuff_classes=len(LANDCOVER_STUFF_CLASSES), num_thing_classes=len(LANDCOVER_THING_CLASSES)
+    )
+    config = TrainConfig(
+        epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
+        checkpoint_dir=checkpoint_dir, device=device,
+    )
+    history = run_training(model, dataset, config)
+    typer.echo(json.dumps({"final_mean_loss": history.epochs[-1].mean_loss, "epochs_run": len(history.epochs)}))
+    typer.echo(
+        f"Pretrained encoder checkpoints saved under {checkpoint_dir}. "
+        "Load one and pass its encoder into a fresh PanopticFCN(...) with your real class counts "
+        "for fine-tuning — see docs/training.md."
+    )
+
+
+@train_app.command("run")
+def train_run(
+    data_root: Path = typer.Argument(..., help="Path to the YOLO dataset root (contains dataset.yaml)."),
+    split: str = typer.Option("train", help="Which split to train on."),
+    epochs: int = typer.Option(1, help="Number of epochs."),
+    batch_size: int = typer.Option(4, help="Batch size."),
+    learning_rate: float = typer.Option(1e-3, help="Adam learning rate."),
+    checkpoint_dir: Path = typer.Option(Path("checkpoints/finetune"), help="Where to save per-epoch checkpoints."),
+    pretrained_checkpoint: Path = typer.Option(None, help="Optional checkpoint from 'train pretrain-transfer' — its encoder weights are loaded, heads are re-initialized for our own class counts."),
+    device: str = typer.Option("cpu", help="'cpu' or 'cuda'."),
+    context_fusion: bool = typer.Option(False, help="Use ContextFusionPanopticFCN instead of the base model."),
+    weight_thing_classes: bool = typer.Option(
+        True,
+        help="Weight the thing-branch loss by inverse class frequency (vehicle/road get more weight than "
+        "building) — see data.torch_dataset.compute_thing_pos_weight and docs/decisions.md (2026-09-21). "
+        "Pass --no-weight-thing-classes to restore plain unweighted BCE.",
+    ),
+) -> None:
+    """Fine-tune on our own mining dataset. Requires the 'vision' extra."""
+    import torch
+
+    from panoptic_mining.data.manifest import load_yolo_manifest
+    from panoptic_mining.data.torch_dataset import (
+        DEFAULT_CLASS_SPLIT,
+        ManifestSegmentationDataset,
+        compute_thing_pos_weight,
+    )
+    from panoptic_mining.models.context_fusion import ContextFusionPanopticFCN
+    from panoptic_mining.models.panoptic_fcn import FeatureEncoder, PanopticFCN
+    from panoptic_mining.training.train import TrainConfig, train as run_training
+
+    manifest = load_yolo_manifest(data_root)
+    dataset = ManifestSegmentationDataset(manifest, split=split, class_split=DEFAULT_CLASS_SPLIT)
+
+    thing_pos_weight = None
+    if weight_thing_classes:
+        thing_pos_weight = compute_thing_pos_weight(
+            manifest.summary()["class_counts"], DEFAULT_CLASS_SPLIT.thing_class_names
+        )
+        typer.echo(
+            f"Weighting thing classes {DEFAULT_CLASS_SPLIT.thing_class_names} by {thing_pos_weight} "
+            "(inverse class frequency from this manifest)."
+        )
+
+    encoder = None
+    if pretrained_checkpoint is not None:
+        checkpoint = torch.load(pretrained_checkpoint, map_location="cpu")
+        pretrain_model = PanopticFCN(num_stuff_classes=2, num_thing_classes=2)  # LandCover.ai head sizes
+        pretrain_model.load_state_dict(checkpoint["model_state_dict"])
+        encoder = pretrain_model.encoder
+        typer.echo(f"Loaded pretrained encoder from {pretrained_checkpoint} (epoch {checkpoint['epoch']}).")
+
+    model_cls = ContextFusionPanopticFCN if context_fusion else PanopticFCN
+    model = model_cls(
+        num_stuff_classes=len(DEFAULT_CLASS_SPLIT.stuff_class_names),
+        num_thing_classes=len(DEFAULT_CLASS_SPLIT.thing_class_names),
+        encoder=encoder or FeatureEncoder(),
+    )
+    config = TrainConfig(
+        epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
+        checkpoint_dir=checkpoint_dir, device=device, thing_pos_weight=thing_pos_weight,
+    )
+    history = run_training(model, dataset, config)
+    typer.echo(json.dumps({"final_mean_loss": history.epochs[-1].mean_loss, "epochs_run": len(history.epochs)}))
+
+
 @app.command("status")
 def status() -> None:
     """Print what's implemented vs. planned (see README for detail)."""
     typer.echo(
         "Implemented: data.points (box->points->pseudo-mask), data.manifest (YOLO dataset "
-        "loading + integrity checks), evaluation.metrics (PQ/SQ/RQ, stuff IoU/F1, thing AP, "
-        "baseline box-equivalence), models.panoptic_fcn + models.context_fusion (runnable "
-        "skeletons, not yet trained — placeholder encoder, class counts pending team/advisor "
-        "resolution, see docs/decisions.md).\n"
-        "Planned: training.train, baseline.yolo_eval (blocked on downloading yolov11_best100.pt), "
-        "leakage-safe split arm of the evaluation matrix (blocked on Jorge's split).\n"
+        "loading + integrity checks), data.torch_dataset + data.transfer_datasets (training "
+        "targets from our data and from LandCover.ai for transfer learning), "
+        "evaluation.metrics (PQ/SQ/RQ, stuff IoU/F1, thing AP, baseline box-equivalence), "
+        "models.panoptic_fcn + models.context_fusion (runnable skeletons — placeholder encoder, "
+        "class counts pending team/advisor resolution, see docs/decisions.md), "
+        "training.train (generic loop: `panoptic-mining train pretrain-transfer` on LandCover.ai, "
+        "then `panoptic-mining train run` to fine-tune — see docs/training.md; NOT yet run "
+        "end-to-end against real data, this is the harness, not a trained model).\n"
+        "Planned: baseline.yolo_eval (blocked on downloading yolov11_best100.pt), "
+        "leakage-safe split arm of the evaluation matrix (blocked on Jorge's split), "
+        "per-instance mask supervision for the kernel/mask-feature heads (training.train only "
+        "supervises the stuff + thing-heatmap heads today).\n"
         "See docs/decisions.md for the open questions this depends on."
     )
 

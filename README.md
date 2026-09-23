@@ -53,13 +53,14 @@ Panoptic Quality (PQ), Segmentation Quality (SQ), Recognition Quality (RQ), IoU/
 - ✅ Box → points → pseudo-mask conversion implemented and unit-tested (no data dependency). Real-data testing on `dataset_split_completo` surfaced two bugs since fixed: background containment (mask was leaking far outside the box) and a missing fallback when GrabCut collapses to near-nothing on texturally ambiguous classes like SDZI.
 - ✅ Evaluation metrics (PQ/SQ/RQ, IoU/F1, precision/recall/mask AP, bbox-equivalence for baseline comparison) implemented and unit-tested on synthetic inputs.
 - ✅ Dataset manifest loading (`data/manifest.py`) implemented against `dataset_split_completo` — defensively handles a broken split (missing `val/`, images without a matching `labels/`), which is exactly the shape of the *other* downloaded archive, `flir_best_division_pr`. Run `panoptic-mining data manifest-summary <path>` to check a dataset before trusting it.
-- ✅ Model skeletons (`models/panoptic_fcn.py` base, `models/context_fusion.py` ablation) implemented and runnable end to end on CPU — encoder is a placeholder (small conv trunk, not yet a real ResNet+FPN backbone), and class counts (2 stuff / 3 thing) match what's actually labeled today, not the thesis objectives' 6 thing categories (open, see `docs/decisions.md`). Not yet trained.
-- ⏳ Training loop: **planned** — `dataset_split_completo` is downloaded so this is no longer blocked on data access per se, but still pending actual implementation.
-- ⏳ Baseline YOLO re-evaluation: **blocked** on downloading `yolov11_best100.pt` (only `yolov26_best100.pt`, a non-matching checkpoint, has been downloaded so far — see `.env`).
+- ✅ Model skeletons (`models/panoptic_fcn.py` base, `models/context_fusion.py` ablation) implemented and runnable end to end on CPU — encoder is a placeholder (small conv trunk, not yet a real ResNet+FPN backbone), and class counts (2 stuff / 3 thing) match what's actually labeled today, not the thesis objectives' 6 thing categories (open, see `docs/decisions.md`). Not yet meaningfully trained (see next line — a few epochs on CPU, not a real training run).
+- ✅ Training loop (`training/train.py`) implemented and unit-tested — a generic loop (stuff CE loss + thing-heatmap BCE loss, checkpointing) that works with either our own dataset or a transfer-learning dataset. **Confirmed running end to end against real data, both stages, including a full unattended overnight run (2026-09-19 to 2026-09-20)**: `train pretrain-transfer` on the real LandCover.ai download reached 63/65 epochs (machine slept mid-run, no code error — see `docs/decisions.md`), then `train run` fine-tuning on `dataset_split_completo` from that checkpoint completed all 213/213 epochs, mean_loss=0.1957 (stuff=0.1677, thing=0.0281) — down from 0.6069 in the earlier 1-epoch smoke test. This directly answers the advisor's "run everything end to end" feedback, but is still not a claim the checkpoint is *good*: no validation split exists yet, so a low training loss doesn't rule out overfitting — evaluating what it actually predicts is the next step. See `docs/training.md`.
+- ✅ Transfer-learning dataset for forest/water pretraining (`data/transfer_datasets.py`, LandCover.ai) implemented, per advisor feedback 2026-09-19. Running it against the real download surfaced one real bug (LandCover.ai's mask PNGs are 3-channel, not single-channel as first assumed) — fixed, with a regression test. See `docs/decisions.md` and `docs/training.md` for why LandCover.ai over DeepGlobe.
+- ✅ `yolov11_best100.pt` downloaded (2026-09-21, see `.env`) — the correct baseline checkpoint (earlier, only the non-matching `yolov26_best100.pt` had been downloaded). Baseline re-evaluation itself (`baseline/yolo_eval.py`) is still planned, not run yet.
 - ⏳ Leakage-safe split arm of the evaluation matrix: **blocked** on Jorge's splitting stage.
 - ✅ RGB vs. thermal imagery: **resolved** — confirmed RGB, never thermal. See `docs/decisions.md` for the remaining (non-code) action this implies for the proposal document.
 
-See `docs/decisions.md` for the open questions this status still depends on (thing-class count mismatch, exact data root contents).
+See `docs/decisions.md` for the open questions this status still depends on (thing-class count mismatch, exact data root contents) and `docs/training.md` for what "running everything" does and doesn't cover yet.
 
 ## Installation & usage
 
@@ -77,7 +78,7 @@ repo/
 ├── src/panoptic_mining/
 │   ├── data/          # manifest loading, box->points->pseudo-mask conversion
 │   ├── models/         # Panoptic FCN base + context-fusion variant (skeleton implemented, not trained)
-│   ├── training/        # training loop (planned)
+│   ├── training/        # training loop — implemented, not yet run against real data (see docs/training.md)
 │   ├── evaluation/       # PQ/SQ/RQ, IoU/F1, mask AP, baseline comparability
 │   ├── baseline/        # YOLOv11 (Eyes in the Sky) re-evaluation (planned)
 │   └── utils/

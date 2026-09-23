@@ -1,0 +1,26 @@
+{
+  "SDZI": {
+    "flood_fill": 77,
+    "grabcut": 205,
+    "full_box_fallback": 18
+  },
+  "building": {
+    "grabcut": 209,
+    "flood_fill": 21,
+    "full_box_fallback": 70
+  },
+  "river": {
+    "grabcut": 282,
+    "flood_fill": 18
+  },
+  "road": {
+    "grabcut": 170,
+    "flood_fill": 18,
+    "full_box_fallback": 112
+  },
+  "vehicle": {
+    "full_box_fallback": 96,
+    "flood_fill": 91,
+    "grabcut": 113
+  }
+}

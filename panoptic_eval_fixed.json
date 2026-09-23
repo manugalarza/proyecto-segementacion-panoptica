@@ -1,0 +1,2044 @@
+{
+  "model": "panoptic_fcn_epoch_500",
+  "evaluation_method": "all_thing_instances vs SDZI_boxes",
+  "iou_threshold": 0.5,
+  "total_instances_generated": 3728,
+  "total_tp": 0,
+  "total_fn": 73,
+  "recall": 0.0,
+  "caveat": "Evaluated in dataset with ~141 overlaps train-test. Will recalculate in leakage-safe split.",
+  "per_image": [
+    {
+      "image": "frame_000065_scene019.jpg",
+      "pred_instances": 14,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000200_scene056.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000210_scene062.jpg",
+      "pred_instances": 22,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000212_scene040.jpg",
+      "pred_instances": 32,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000228_scene065.jpg",
+      "pred_instances": 18,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000232_scene066.jpg",
+      "pred_instances": 14,
+      "gt_sdzi_boxes": 3,
+      "tp": 0,
+      "fn": 3,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000240_scene068.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 3,
+      "tp": 0,
+      "fn": 3,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000383_scene115.jpg",
+      "pred_instances": 16,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000562_scene165.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "frame_000582_scene119.jpg",
+      "pred_instances": 32,
+      "gt_sdzi_boxes": 3,
+      "tp": 0,
+      "fn": 3,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000887_scene187.jpg",
+      "pred_instances": 12,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000891_scene187.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000912_scene188.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000921_scene188.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "frame_000928_scene188.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_000940_scene189.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_001307_scene274.jpg",
+      "pred_instances": 56,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_002728_scene561.jpg",
+      "pred_instances": 44,
+      "gt_sdzi_boxes": 3,
+      "tp": 0,
+      "fn": 3,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0103.jpg",
+      "pred_instances": 54,
+      "gt_sdzi_boxes": 3,
+      "tp": 0,
+      "fn": 3,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0114.jpg",
+      "pred_instances": 62,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0116.jpg",
+      "pred_instances": 50,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0122.jpg",
+      "pred_instances": 40,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0163.jpg",
+      "pred_instances": 65,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0191.jpg",
+      "pred_instances": 50,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0220.jpg",
+      "pred_instances": 81,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0222.jpg",
+      "pred_instances": 83,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0223.jpg",
+      "pred_instances": 68,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "frame_0224.jpg",
+      "pred_instances": 79,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_013.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_014.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_016.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_046.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_058.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_064.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_072.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_078.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_085.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_091.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_096.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_098.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_106.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_108.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_109.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_114.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_117.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_119.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_150.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_151.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_152.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_153.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_154.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_159.jpg",
+      "pred_instances": 10,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_160.jpg",
+      "pred_instances": 14,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_161.jpg",
+      "pred_instances": 10,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_166.jpg",
+      "pred_instances": 13,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_183.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_185.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_186.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_215.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_223.jpg",
+      "pred_instances": 7,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_235.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_240.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_250.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_263.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_274.jpg",
+      "pred_instances": 14,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_296.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_302.jpg",
+      "pred_instances": 7,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_319.jpg",
+      "pred_instances": 11,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_324.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_327.jpg",
+      "pred_instances": 21,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_336.jpg",
+      "pred_instances": 13,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_340.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_346.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_353.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_367.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_380.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_387.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_395.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_405.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_422.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_435.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_449.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_451.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_473.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_485.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_493.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 1,
+      "tp": 0,
+      "fn": 1,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_498.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_503.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_510.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_518.jpg",
+      "pred_instances": 28,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_522.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_535.jpg",
+      "pred_instances": 10,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_536.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_549.jpg",
+      "pred_instances": 7,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_563.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_572.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_575.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_579.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_584.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_587.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_591.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_593.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_595.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_603.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_604.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_605.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_606.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_610.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_612.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_615.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_617.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 2,
+      "tp": 0,
+      "fn": 2,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_623.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_634.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_642.jpg",
+      "pred_instances": 7,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_648.jpg",
+      "pred_instances": 12,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_657.jpg",
+      "pred_instances": 20,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_660.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_666.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_11min_697.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_699.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_701.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_703.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_705.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_707.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_11min_712.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_015.jpg",
+      "pred_instances": 7,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_026.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_034.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_036.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_048.jpg",
+      "pred_instances": 46,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_055.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_061.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_093.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_104.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_116.jpg",
+      "pred_instances": 10,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_124.jpg",
+      "pred_instances": 26,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_125.jpg",
+      "pred_instances": 24,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_126.jpg",
+      "pred_instances": 15,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_127.jpg",
+      "pred_instances": 17,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_128.jpg",
+      "pred_instances": 12,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_129.jpg",
+      "pred_instances": 10,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_130.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_134.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_140.jpg",
+      "pred_instances": 24,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_142.jpg",
+      "pred_instances": 11,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_163.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_174.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_190.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_208.jpg",
+      "pred_instances": 8,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_209.jpg",
+      "pred_instances": 13,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_230.jpg",
+      "pred_instances": 16,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_239.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_240.jpg",
+      "pred_instances": 34,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_241.jpg",
+      "pred_instances": 32,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_242.jpg",
+      "pred_instances": 30,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_243.jpg",
+      "pred_instances": 33,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_244.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_248.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_251.jpg",
+      "pred_instances": 21,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_266.jpg",
+      "pred_instances": 44,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_272.jpg",
+      "pred_instances": 38,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_275.jpg",
+      "pred_instances": 22,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_276.jpg",
+      "pred_instances": 16,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_278.jpg",
+      "pred_instances": 15,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_311.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_321.jpg",
+      "pred_instances": 40,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_326.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_334.jpg",
+      "pred_instances": 22,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_338.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_341.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_345.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_346.jpg",
+      "pred_instances": 31,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_354.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_362.jpg",
+      "pred_instances": 13,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_368.jpg",
+      "pred_instances": 14,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_388.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_389.jpg",
+      "pred_instances": 34,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_408.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_409.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_410.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_411.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_412.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_413.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_414.jpg",
+      "pred_instances": 5,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_415.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_416.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_418.jpg",
+      "pred_instances": 3,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_419.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_420.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_421.jpg",
+      "pred_instances": 6,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_440.jpg",
+      "pred_instances": 54,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_442.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_465.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_466.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_469.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_471.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_479.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_482.jpg",
+      "pred_instances": 43,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_483.jpg",
+      "pred_instances": 40,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_484.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_485.jpg",
+      "pred_instances": 33,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_486.jpg",
+      "pred_instances": 33,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_487.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_488.jpg",
+      "pred_instances": 30,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_489.jpg",
+      "pred_instances": 17,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_490.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_491.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_492.jpg",
+      "pred_instances": 28,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_493.jpg",
+      "pred_instances": 34,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_494.jpg",
+      "pred_instances": 40,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_495.jpg",
+      "pred_instances": 24,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_496.jpg",
+      "pred_instances": 33,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_498.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_499.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_508.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_531.jpg",
+      "pred_instances": 17,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_538.jpg",
+      "pred_instances": 4,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_539.jpg",
+      "pred_instances": 15,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_549.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_551.jpg",
+      "pred_instances": 30,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_553.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_557.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_565.jpg",
+      "pred_instances": 23,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_574.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_598.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_599.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_608.jpg",
+      "pred_instances": 26,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_610.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_619.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_624.jpg",
+      "pred_instances": 35,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_625.jpg",
+      "pred_instances": 24,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_626.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_627.jpg",
+      "pred_instances": 29,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_628.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_629.jpg",
+      "pred_instances": 31,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_630.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_639.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_640.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_641.jpg",
+      "pred_instances": 18,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_642.jpg",
+      "pred_instances": 15,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_643.jpg",
+      "pred_instances": 19,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_644.jpg",
+      "pred_instances": 15,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_645.jpg",
+      "pred_instances": 27,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_646.jpg",
+      "pred_instances": 32,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_647.jpg",
+      "pred_instances": 25,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_648.jpg",
+      "pred_instances": 16,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_649.jpg",
+      "pred_instances": 31,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_650.jpg",
+      "pred_instances": 12,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_651.jpg",
+      "pred_instances": 11,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_701.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    },
+    {
+      "image": "video_13min_703.jpg",
+      "pred_instances": 9,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_709.jpg",
+      "pred_instances": 1,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_749.jpg",
+      "pred_instances": 2,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 0.0
+    },
+    {
+      "image": "video_13min_775.jpg",
+      "pred_instances": 0,
+      "gt_sdzi_boxes": 0,
+      "tp": 0,
+      "fn": 0,
+      "recall": 1.0
+    }
+  ]
+}

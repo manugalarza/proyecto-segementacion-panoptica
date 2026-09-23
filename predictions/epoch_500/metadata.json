@@ -1,0 +1,1794 @@
+{
+  "checkpoint": "finetune_weighted_longer/epoch_500.pt",
+  "stuff_classes": [
+    "river",
+    "SDZI",
+    "background"
+  ],
+  "thing_classes": [
+    "vehicle",
+    "building",
+    "road"
+  ],
+  "total_images": 254,
+  "images": [
+    {
+      "name": "frame_000065_scene019.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000200_scene056.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000210_scene062.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000212_scene040.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000228_scene065.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000232_scene066.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000240_scene068.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000383_scene115.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000562_scene165.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_000582_scene119.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000887_scene187.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000891_scene187.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000912_scene188.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000921_scene188.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000928_scene188.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_000940_scene189.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_001307_scene274.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_002728_scene561.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "frame_0103.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0114.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0116.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0122.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0163.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0191.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0220.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0222.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0223.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "frame_0224.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_013.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_014.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_016.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_046.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_058.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_064.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_072.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_078.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_085.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_091.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_096.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_098.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_106.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_108.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_109.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_114.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_117.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_119.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_150.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_151.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_152.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_153.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_154.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_159.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_160.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_161.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_166.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_183.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_185.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_186.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_215.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_223.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_235.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_240.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_250.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_263.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_274.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_296.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_302.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_319.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_324.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_327.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_336.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_340.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_346.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_353.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_367.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_380.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_387.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_395.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_405.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_422.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_435.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_449.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_451.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_473.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_485.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_493.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_498.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_503.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_510.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_518.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_522.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_535.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_536.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_549.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_563.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_572.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_575.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_579.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_584.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_587.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_591.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_593.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_595.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_603.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_604.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_605.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_606.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_610.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_612.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_615.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_617.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_623.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_634.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_642.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_648.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_657.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_660.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_666.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_697.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_699.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_701.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_703.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_705.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_707.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_11min_712.jpg",
+      "shape": [
+        1080,
+        1920
+      ]
+    },
+    {
+      "name": "video_13min_015.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_026.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_034.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_036.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_048.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_055.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_061.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_093.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_104.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_116.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_124.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_125.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_126.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_127.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_128.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_129.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_130.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_134.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_140.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_142.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_163.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_174.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_190.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_208.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_209.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_230.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_239.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_240.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_241.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_242.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_243.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_244.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_248.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_251.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_266.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_272.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_275.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_276.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_278.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_311.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_321.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_326.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_334.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_338.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_341.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_345.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_346.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_354.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_362.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_368.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_388.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_389.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_408.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_409.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_410.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_411.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_412.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_413.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_414.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_415.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_416.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_418.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_419.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_420.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_421.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_440.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_442.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_465.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_466.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_469.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_471.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_479.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_482.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_483.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_484.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_485.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_486.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_487.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_488.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_489.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_490.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_491.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_492.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_493.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_494.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_495.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_496.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_498.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_499.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_508.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_531.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_538.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_539.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_549.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_551.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_553.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_557.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_565.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_574.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_598.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_599.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_608.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_610.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_619.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_624.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_625.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_626.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_627.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_628.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_629.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_630.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_639.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_640.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_641.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_642.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_643.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_644.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_645.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_646.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_647.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_648.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_649.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_650.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_651.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_701.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_703.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_709.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_749.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    },
+    {
+      "name": "video_13min_775.jpg",
+      "shape": [
+        720,
+        1280
+      ]
+    }
+  ]
+}
