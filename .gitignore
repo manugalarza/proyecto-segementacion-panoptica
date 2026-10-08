@@ -13,7 +13,7 @@ env/
 *.env.local
 
 # Datos y modelos (pesados, no van al repo)
-data/
+/data/
 datasets/
 *.mp4
 *.avi
