@@ -104,6 +104,7 @@ class ManifestSegmentationDataset(Dataset):
         class_split: ClassSplit = DEFAULT_CLASS_SPLIT,
         image_size: tuple[int, int] = (512, 512),
         target_stride: int = 8,
+        return_thing_masks: bool = False,
     ):
         if split not in manifest.frames_by_split:
             raise ValueError(
@@ -114,6 +115,10 @@ class ManifestSegmentationDataset(Dataset):
         self.image_height, self.image_width = image_size
         self.target_height = self.image_height // target_stride
         self.target_width = self.image_width // target_stride
+        # Thing masks have a variable count per frame, which the default
+        # DataLoader collate can't batch; they're also not used by the
+        # current training loop. Off by default (2026-10-08).
+        self.return_thing_masks = return_thing_masks
 
     def __len__(self) -> int:
         return len(self.frames)
@@ -146,7 +151,14 @@ class ManifestSegmentationDataset(Dataset):
             boxes_pixels, self.target_height, self.target_width, self.class_split.thing_index
         )
 
-        # Generate pseudo-masks for thing instances
+        if not self.return_thing_masks:
+            return (
+                image_tensor,
+                torch.from_numpy(stuff_target).long(),
+                torch.from_numpy(thing_heatmap).float(),
+            )
+
+        # Pseudo-masks for thing instances (currently box rectangles, see targets.py)
         thing_masks = generate_thing_pseudo_masks(
             image_resized,
             boxes_pixels,
