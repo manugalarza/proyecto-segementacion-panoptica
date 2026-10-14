@@ -25,7 +25,7 @@ import torch
 import torch.nn.functional as F
 
 from panoptic_mining.data.torch_dataset import DEFAULT_CLASS_SPLIT, ClassSplit
-from panoptic_mining.models.panoptic_fcn import PanopticFCN
+from panoptic_mining.models.panoptic_fcn import PanopticFCN, build_encoder
 
 
 @dataclass
@@ -49,11 +49,17 @@ def load_image_like_training(image_path: str | Path, image_size: tuple[int, int]
 
 
 def load_model(checkpoint_path: str | Path, class_split: ClassSplit = DEFAULT_CLASS_SPLIT, device: str = "cpu") -> PanopticFCN:
+    """Rebuilds the encoder recorded in the checkpoint config ("placeholder"
+    for every checkpoint older than 2026-10-14, "resnet18" after)."""
+    checkpoint = torch.load(str(checkpoint_path), map_location=device, weights_only=False)
+    config = checkpoint.get("config", {}) if isinstance(checkpoint, dict) else {}
+    encoder_name = config.get("encoder", "placeholder")
     model = PanopticFCN(
         num_stuff_classes=len(class_split.stuff_class_names),
         num_thing_classes=len(class_split.thing_class_names),
+        # weights=None: the checkpoint already holds the trained backbone, no download needed
+        encoder=build_encoder(encoder_name, resnet_weights=None),
     )
-    checkpoint = torch.load(str(checkpoint_path), map_location=device, weights_only=False)
     state = checkpoint["model_state_dict"] if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint else checkpoint
     model.load_state_dict(state)
     model.to(device).eval()

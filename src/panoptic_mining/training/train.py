@@ -56,6 +56,17 @@ class TrainConfig:
     # Save a checkpoint every N epochs (the last epoch is always saved).
     save_every_n_epochs: int = 1
     seed: int | None = None
+    # Resume: first epoch to run (1 = from scratch) and an optional optimizer
+    # state dict from the checkpoint being resumed (model weights must already
+    # be loaded into the model by the caller).
+    start_epoch: int = 1
+    optimizer_state: dict | None = None
+    # Recorded in the checkpoint so inference.load_model rebuilds the same encoder.
+    encoder: str = "placeholder"
+    # Learning-rate multiplier for a pretrained backbone (e.g. 0.1 for ResNet-18):
+    # the backbone gets learning_rate * encoder_lr_mult, the heads learning_rate.
+    encoder_lr_mult: float = 1.0
+    num_workers: int = 0
 
 
 @dataclass
@@ -156,8 +167,27 @@ def train(
     model.to(device)
     model.train()
 
-    loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+    loader = DataLoader(
+        train_dataset,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=config.num_workers,
+        pin_memory=device.type == "cuda",
+        persistent_workers=config.num_workers > 0,
+    )
+    backbone = getattr(model.encoder, "backbone_parameters", None)
+    if backbone is not None and config.encoder_lr_mult != 1.0:
+        backbone_ids = {id(p) for p in backbone()}
+        param_groups = [
+            {"params": [p for p in model.parameters() if id(p) in backbone_ids],
+             "lr": config.learning_rate * config.encoder_lr_mult},
+            {"params": [p for p in model.parameters() if id(p) not in backbone_ids], "lr": config.learning_rate},
+        ]
+    else:
+        param_groups = [{"params": list(model.parameters()), "lr": config.learning_rate}]
+    optimizer = torch.optim.Adam(param_groups, lr=config.learning_rate)
+    if config.optimizer_state is not None:
+        optimizer.load_state_dict(config.optimizer_state)
     thing_pos_weight = (
         torch.tensor(config.thing_pos_weight, dtype=torch.float32) if config.thing_pos_weight is not None else None
     )
@@ -169,14 +199,14 @@ def train(
         config.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     history = TrainingHistory()
-    for epoch in range(1, config.epochs + 1):
+    for epoch in range(config.start_epoch, config.epochs + 1):
         epoch_start = time.monotonic()
         total_losses, stuff_losses, thing_losses = [], [], []
         for step, batch in enumerate(loader, start=1):
             images, stuff_targets, thing_heatmap_targets = batch[0], batch[1], batch[2]
-            images = images.to(device)
-            stuff_targets = stuff_targets.to(device)
-            thing_heatmap_targets = thing_heatmap_targets.to(device)
+            images = images.to(device, non_blocking=True)
+            stuff_targets = stuff_targets.to(device, non_blocking=True)
+            thing_heatmap_targets = thing_heatmap_targets.to(device, non_blocking=True)
 
             optimizer.zero_grad()
             total_loss, stuff_loss, thing_loss = compute_losses(
@@ -230,7 +260,7 @@ def train(
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "mean_loss": metrics.mean_loss,
-                    "config": {k: (str(v) if isinstance(v, Path) else v) for k, v in config.__dict__.items()},
+                    "config": {k: (str(v) if isinstance(v, Path) else v) for k, v in config.__dict__.items() if k != "optimizer_state"},
                 },
                 config.checkpoint_dir / f"epoch_{epoch}.pt",
             )

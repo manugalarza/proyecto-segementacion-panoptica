@@ -75,6 +75,70 @@ class FeatureEncoder(nn.Module):
         return self.stem(images)
 
 
+class ResNetFPNEncoder(nn.Module):
+    """ResNet-18 (torchvision) + a minimal FPN top-down path, producing ONE
+    feature map at 1/8 input resolution so it is a drop-in replacement for
+    ``FeatureEncoder`` (same stride, so the dataset's ``target_stride=8``
+    and every head stay unchanged). Added 2026-10-14 after the 2x2
+    experiment showed the placeholder trunk could not learn even river.
+
+    Input convention is unchanged: BGR in [0, 1] (see ``inference.py``).
+    The ImageNet channel flip (BGR -> RGB) and mean/std normalization are
+    done here, inside the model, so training and inference preprocessing
+    stay identical by construction.
+
+    ``weights``: "imagenet" (torchvision IMAGENET1K_V1; downloaded to the
+    torch hub cache, or found there if copied by hand), a path to a
+    ``resnet18-*.pth`` state dict, or None (random init, for tests).
+    """
+
+    def __init__(self, weights: str | None = "imagenet", out_channels: int = 128):
+        super().__init__()
+        from torchvision.models import resnet18
+
+        if weights == "imagenet":
+            from torchvision.models import ResNet18_Weights
+
+            net = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        else:
+            net = resnet18(weights=None)
+            if weights is not None:
+                net.load_state_dict(torch.load(str(weights), map_location="cpu"))
+        self.stem = nn.Sequential(net.conv1, net.bn1, net.relu, net.maxpool)  # 1/4
+        self.layer1, self.layer2, self.layer3, self.layer4 = net.layer1, net.layer2, net.layer3, net.layer4
+        self.lat2 = nn.Conv2d(128, out_channels, 1)  # 1/8
+        self.lat3 = nn.Conv2d(256, out_channels, 1)  # 1/16
+        self.lat4 = nn.Conv2d(512, out_channels, 1)  # 1/32
+        self.smooth = nn.Sequential(nn.Conv2d(out_channels, out_channels, 3, padding=1), nn.ReLU(inplace=True))
+        self.out_channels = out_channels
+        self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), persistent=False)
+        self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1), persistent=False)
+
+    def backbone_parameters(self):
+        for m in (self.stem, self.layer1, self.layer2, self.layer3, self.layer4):
+            yield from m.parameters()
+
+    def forward(self, images: torch.Tensor) -> torch.Tensor:
+        x = (images.flip(1) - self.mean) / self.std  # BGR -> RGB, ImageNet normalization
+        c2 = self.layer2(self.layer1(self.stem(x)))
+        c3 = self.layer3(c2)
+        c4 = self.layer4(c3)
+        p4 = self.lat4(c4)
+        p3 = self.lat3(c3) + F.interpolate(p4, size=c3.shape[-2:], mode="nearest")
+        p2 = self.lat2(c2) + F.interpolate(p3, size=c2.shape[-2:], mode="nearest")
+        return self.smooth(p2)
+
+
+def build_encoder(name: str = "placeholder", resnet_weights: str | None = "imagenet") -> nn.Module:
+    """``name`` is stored in every checkpoint's config so ``inference.load_model``
+    can rebuild the same architecture."""
+    if name == "placeholder":
+        return FeatureEncoder()
+    if name == "resnet18":
+        return ResNetFPNEncoder(weights=resnet_weights)
+    raise ValueError(f"Unknown encoder {name!r} (expected 'placeholder' or 'resnet18')")
+
+
 class PanopticFCN(nn.Module):
     """Base model: independent stuff (semantic) and thing (kernel-based
     instance) branches over a shared encoder. See ``context_fusion.py``

@@ -10,6 +10,7 @@ anything that imports it without torch installed, same convention as
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -82,6 +83,42 @@ def compute_thing_pos_weight(class_counts: dict[str, int], thing_class_names: li
     return [max_count / count if count > 0 else 1.0 for count in counts]
 
 
+# Class ids of the semantic PNG masks written by scripts/sam_from_boxes.py
+# (--save-masks) and scripts/annotate_semantic.py: the YOLO ids of the
+# project plus 5 = background; 255 = unlabeled/ignore.
+SEMANTIC_MASK_CLASS_NAMES = ["vehicle", "building", "road", "river", "SDZI", "background"]
+SEMANTIC_IGNORE = 255
+
+
+def semantic_mask_to_stuff_target(
+    mask: np.ndarray,
+    target_height: int,
+    target_width: int,
+    class_split: ClassSplit,
+    mask_class_names: list[str] = SEMANTIC_MASK_CLASS_NAMES,
+) -> np.ndarray:
+    """Full-resolution semantic PNG -> (target_height, target_width) stuff
+    class map with -1 = ignore. Non-stuff classes (things, background)
+    become the stuff background class ("none"). Downsampling takes, per
+    target cell, the label covering the largest area (one-hot + INTER_AREA
+    + argmax) instead of nearest-neighbour, so small SDZI regions are not
+    dropped just because they miss the sampled pixel."""
+    background = class_split.stuff_background_index
+    if background is None:
+        raise ValueError("Mask targets need an explicit stuff background class")
+    lut = np.full(256, -1, dtype=np.int64)
+    for mask_id, name in enumerate(mask_class_names):
+        lut[mask_id] = class_split.stuff_index.get(name, background)
+    lut[SEMANTIC_IGNORE] = -1
+    full = lut[mask]
+    labels = [-1] + list(range(len(class_split.stuff_class_names)))
+    fractions = np.stack(
+        [cv2.resize((full == lab).astype(np.float32), (target_width, target_height), interpolation=cv2.INTER_AREA)
+         for lab in labels]
+    )
+    return np.asarray(labels, dtype=np.int64)[fractions.argmax(axis=0)]
+
+
 class ManifestSegmentationDataset(Dataset):
     """One sample = one frame from a ``DatasetManifest`` split, resized to
     ``image_size`` and downsampled by ``target_stride`` (matching
@@ -105,6 +142,7 @@ class ManifestSegmentationDataset(Dataset):
         image_size: tuple[int, int] = (512, 512),
         target_stride: int = 8,
         return_thing_masks: bool = False,
+        stuff_mask_dir: str | Path | None = None,
     ):
         if split not in manifest.frames_by_split:
             raise ValueError(
@@ -119,6 +157,17 @@ class ManifestSegmentationDataset(Dataset):
         # DataLoader collate can't batch; they're also not used by the
         # current training loop. Off by default (2026-10-08).
         self.return_thing_masks = return_thing_masks
+        # If set, the stuff target comes from <stuff_mask_dir>/<frame>.png
+        # (e.g. SAM pseudo-masks) instead of filled box rectangles. Thing
+        # heatmaps still come from the boxes. Every frame must have a mask.
+        self.stuff_mask_dir = Path(stuff_mask_dir) if stuff_mask_dir is not None else None
+        if self.stuff_mask_dir is not None:
+            missing = [f.image_path.stem for f in self.frames
+                       if not (self.stuff_mask_dir / f"{Path(f.image_path).stem}.png").exists()]
+            if missing:
+                raise FileNotFoundError(
+                    f"{len(missing)} frames have no mask in {self.stuff_mask_dir} (e.g. {missing[:3]})"
+                )
 
     def __len__(self) -> int:
         return len(self.frames)
@@ -140,13 +189,22 @@ class ManifestSegmentationDataset(Dataset):
                 (box.class_name, (x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y))
             )
 
-        stuff_target = rasterize_boxes_to_class_map(
-            boxes_pixels,
-            self.target_height,
-            self.target_width,
-            self.class_split.stuff_index,
-            background_index=self.class_split.stuff_background_index,
-        )
+        if self.stuff_mask_dir is not None:
+            mask_path = self.stuff_mask_dir / f"{Path(frame.image_path).stem}.png"
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_UNCHANGED)
+            if mask is None or mask.ndim != 2:
+                raise RuntimeError(f"Could not read single-channel mask: {mask_path}")
+            stuff_target = semantic_mask_to_stuff_target(
+                mask, self.target_height, self.target_width, self.class_split
+            )
+        else:
+            stuff_target = rasterize_boxes_to_class_map(
+                boxes_pixels,
+                self.target_height,
+                self.target_width,
+                self.class_split.stuff_index,
+                background_index=self.class_split.stuff_background_index,
+            )
         thing_heatmap = gaussian_heatmap_targets(
             boxes_pixels, self.target_height, self.target_width, self.class_split.thing_index
         )

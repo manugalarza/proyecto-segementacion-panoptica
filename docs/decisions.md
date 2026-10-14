@@ -312,3 +312,41 @@ whichever class has the most boxes. Untested against real data as of
 this entry — same caveat as everything torch-dependent in this project;
 the next real fine-tuning run against `dataset_split_completo` is what
 will actually tell us if it helps.
+
+## 2x2 ground-truth experiment: inconclusive, model is the bottleneck (2026-10-08)
+
+Trained the placeholder encoder (LandCover.ai `epoch_63.pt`) for 150 epochs
+on the same frames/split with Etiquetas and with the April re-annotation
+(`scripts/run_2x2.ps1`). SDZI recall on test (box IoU 0.5): 2/8 with 46 false
+positives (Etiquetas model on Etiquetas), 0/28 (April on April), 0 in both
+cross cells. River sanity check: recall 0.08-0.18. Validation F2 was 0 for
+every setting in 3 of 4 cells, so their "operating point" was the first
+grid entry, not a real choice. Conclusion: the experiment cannot decide
+the ground truth; that decision rests on the blind review (April more
+complete in 47/50 pairs). Stuff loss plateaued at ~0.36.
+
+## Encoder: placeholder -> ResNet-18 ImageNet + FPN (2026-10-14)
+
+`models/panoptic_fcn.ResNetFPNEncoder`, selected with
+`train_gt_variant.py --encoder resnet18`. Same output stride (1/8) and
+channels (128), so heads, targets and inference are unchanged. BGR->RGB and
+ImageNet normalization happen inside the encoder, so inputs stay BGR [0,1].
+Backbone learning rate = 0.1 x heads. Motivation: the 2x2 above. Note: this
+changes two things at once (architecture AND pretraining source,
+LandCover.ai -> ImageNet); report it as "encoder change". Checkpoints store
+`config.encoder`; `inference.load_model` rebuilds the right one (older
+checkpoints default to "placeholder").
+
+## Stuff targets from SAM pseudo-masks (2026-10-14)
+
+`scripts/sam_from_boxes.py --save-masks` (box = prompt, ultralytics
+`sam_b.pt`) writes one semantic PNG per training frame; `--masks DIR` in
+`train_gt_variant.py` uses them instead of filled rectangles (thing heatmaps
+still come from boxes). Downsampling to the 1/8 target uses the majority
+label per cell (INTER_AREA on one-hot), not nearest. Median SAM mask / box
+area on April train (956 frames): vehicle 0.56, building 0.46, road 0.17,
+river 0.29, SDZI 0.38. SAM masks are pseudo-labels for TRAINING only;
+evaluation uses hand-made masks (`gt_manual`, 29 test frames, one or two
+per video block) with `scripts/eval_pixel.py` (pixel IoU + region
+coverage recall). Planned runs: A = ResNet-18 + rectangles, B = ResNet-18 +
+SAM, C = YOLO retrained on the same April train split.
