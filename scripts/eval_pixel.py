@@ -117,6 +117,9 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default="auto")
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--save-vis", action="store_true",
+                    help="Also write <out>/vis/<frame>.jpg: image | GT | one panel per model (river cyan, SDZI magenta)")
+    ap.add_argument("--vis-width", type=int, default=640)
     args = ap.parse_args()
 
     import torch
@@ -166,6 +169,7 @@ def main() -> None:
         raise SystemExit("Give at least one --checkpoint or --yolo")
 
     all_rows, summary = [], {}
+    vis = {}  # frame -> list of (title, small label map); 0 none, 3 river, 4 SDZI, 255 ignore
     for name, run in predictors.items():
         rows = []
         for k, img_path in enumerate(frames, 1):
@@ -175,11 +179,49 @@ def main() -> None:
                 pred = {key: cv2.resize(v.astype(np.uint8), (gt.shape[1], gt.shape[0]), interpolation=cv2.INTER_NEAREST).astype(bool)
                         for key, v in pred.items()}
             row = {"model": name, "frame": img_path.stem, **score_frame(pred, gt, args.min_area, args.cover)}
+            if args.save_vis:
+                vw, vh = args.vis_width, int(round(gt.shape[0] * args.vis_width / gt.shape[1]))
+                lab = np.zeros(gt.shape, np.uint8)
+                lab[pred["river"]] = 3
+                lab[pred["SDZI"]] = 4
+                if img_path.stem not in vis:
+                    g = np.where(np.isin(gt, (3, 4, IGNORE)), gt, 0).astype(np.uint8)
+                    vis[img_path.stem] = [("ground truth (manual)", cv2.resize(g, (vw, vh), interpolation=cv2.INTER_NEAREST))]
+                vis[img_path.stem].append((name, cv2.resize(lab, (vw, vh), interpolation=cv2.INTER_NEAREST)))
             rows.append(row)
             if k % 10 == 0:
                 print(f"  [{name}] {k}/{len(frames)}", flush=True)
         all_rows += rows
         summary[name] = summarize(rows, args.bootstrap, args.seed)
+
+    if args.save_vis:
+        colors = {3: (255, 255, 0), 4: (255, 0, 255), IGNORE: (128, 128, 128)}  # BGR: river cyan, SDZI magenta
+        (args.out / "vis").mkdir(exist_ok=True)
+        for img_path in frames:
+            panels_in = vis[img_path.stem]
+            h, w = panels_in[0][1].shape
+            base = cv2.resize(cv2.imread(str(img_path)), (w, h))
+            panels = []
+            for title, lab in [("image", None)] + panels_in:
+                p = base.copy()
+                if lab is not None:
+                    over = p.copy()
+                    for k, c in colors.items():
+                        over[lab == k] = c
+                    p = cv2.addWeighted(p, 0.45, over, 0.55, 0)
+                    for k, c in colors.items():
+                        if k != IGNORE:
+                            cnts, _ = cv2.findContours((lab == k).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                            cv2.drawContours(p, cnts, -1, c, 2)
+                band = np.zeros((34, w, 3), np.uint8)
+                cv2.putText(band, title, (8, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                panels.append(np.vstack([band, p]))
+            cols = 3
+            while len(panels) % cols:
+                panels.append(np.zeros_like(panels[0]))
+            rows_img = [np.hstack(panels[i:i + cols]) for i in range(0, len(panels), cols)]
+            cv2.imwrite(str(args.out / "vis" / f"{img_path.stem}.jpg"), np.vstack(rows_img), [cv2.IMWRITE_JPEG_QUALITY, 88])
+        print(f"Visualizations: {args.out / 'vis'} (river = cyan, SDZI = magenta, grey = ignored)")
 
     with open(args.out / "per_frame.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(all_rows[0]))
