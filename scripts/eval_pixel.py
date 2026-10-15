@@ -109,6 +109,10 @@ def main() -> None:
     ap.add_argument("--gt", required=True, type=Path, help="Folder of GT PNG masks (gt_manual\\masks)")
     ap.add_argument("--checkpoint", action="append", default=[], help="NAME=PATH (repeatable)")
     ap.add_argument("--yolo", action="append", default=[], help="NAME=PATH (repeatable)")
+    ap.add_argument("--mask-dir", action="append", default=[],
+                    help="NAME=DIR of semantic PNGs (same ids as the GT), e.g. SAM pseudo-masks: scores the LABELER itself")
+    ap.add_argument("--box-labels", action="append", default=[],
+                    help="NAME=DIR of YOLO .txt labels, boxes filled as masks (the 'rectangles' labeler baseline)")
     ap.add_argument("--yolo-conf", type=float, default=0.25)
     ap.add_argument("--sdzi-threshold", type=float, default=None, help="P(SDZI) >= t instead of argmax (choose on val!)")
     ap.add_argument("--min-area", type=float, default=0.0005, help="Min region size, fraction of the image")
@@ -165,8 +169,35 @@ def main() -> None:
                         masks[k][max(0, y1):y2, max(0, x1):x2] = True
             return masks
         predictors[name] = run
+    for item in args.mask_dir:
+        name, _, folder = item.partition("=")
+
+        def run(img_path, folder=Path(folder)):
+            m = cv2.imread(str(folder / f"{img_path.stem}.png"), cv2.IMREAD_UNCHANGED)
+            if m is None:
+                raise SystemExit(f"Missing mask {folder / (img_path.stem + '.png')}")
+            return {k: m == gid for k, gid in GT_IDS.items()}
+        predictors[name] = run
+    for item in args.box_labels:
+        name, _, folder = item.partition("=")
+
+        def run(img_path, folder=Path(folder)):
+            h, w = cv2.imread(str(img_path)).shape[:2]
+            masks = {k: np.zeros((h, w), bool) for k in GT_IDS}
+            lp = folder / f"{img_path.stem}.txt"
+            for line in (lp.read_text().splitlines() if lp.exists() else []):
+                parts = line.split()
+                if len(parts) < 5:
+                    continue
+                c, xc, yc, bw, bh = int(parts[0]), *map(float, parts[1:5])
+                x1, y1, x2, y2 = int((xc - bw / 2) * w), int((yc - bh / 2) * h), int((xc + bw / 2) * w), int((yc + bh / 2) * h)
+                for k, gid in GT_IDS.items():
+                    if c == gid:
+                        masks[k][max(0, y1):y2, max(0, x1):x2] = True
+            return masks
+        predictors[name] = run
     if not predictors:
-        raise SystemExit("Give at least one --checkpoint or --yolo")
+        raise SystemExit("Give at least one --checkpoint, --yolo, --mask-dir or --box-labels")
 
     all_rows, summary = [], {}
     vis = {}  # frame -> list of (title, small label map); 0 none, 3 river, 4 SDZI, 255 ignore
