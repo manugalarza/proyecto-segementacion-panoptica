@@ -46,6 +46,7 @@ class TrainConfig:
     learning_rate: float = 1e-3
     stuff_loss_weight: float = 1.0
     thing_loss_weight: float = 1.0
+    instance_loss_weight: float = 1.0
     device: str = "cpu"
     checkpoint_dir: Path | None = None
     log_every_n_steps: int = 10
@@ -76,12 +77,46 @@ class EpochMetrics:
     mean_stuff_loss: float
     mean_thing_loss: float
     num_batches: int = 0
+    mean_instance_loss: float = 0.0
     elapsed_seconds: float = 0.0
 
 
 @dataclass
 class TrainingHistory:
     epochs: list[EpochMetrics] = field(default_factory=list)
+
+
+def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor:
+    """Per-instance Dice (Panoptic FCN kernel x feature loss).
+
+    For each thing instance in the frame, its kernel is read at its heatmap
+    peak (inst_centers), applied to the shared mask-feature map, and the
+    sigmoid mask is compared with the instance's target mask (inst_map == id).
+    Instances whose target vanished at feature resolution are skipped.
+    """
+    feats_all = output.mask_features
+    kernels_all = output.kernels
+    dices = []
+    for b in range(kernels_all.shape[0]):
+        valid = inst_ids[b] >= 0
+        if not bool(valid.any()):
+            continue
+        ids = inst_ids[b][valid]
+        cs = inst_centers[b][valid]
+        kernels = kernels_all[b][:, cs[:, 0], cs[:, 1]].T  # (n, K)
+        logits = torch.einsum("nk,khw->nhw", kernels, feats_all[b])
+        pred = torch.sigmoid(logits)
+        target = (inst_map[b].unsqueeze(0) == ids.view(-1, 1, 1)).to(pred.dtype)
+        keep = target.flatten(1).sum(1) > 0
+        if not bool(keep.any()):
+            continue
+        pred, target = pred[keep], target[keep]
+        inter = (pred * target).flatten(1).sum(1)
+        denom = pred.flatten(1).sum(1) + target.flatten(1).sum(1)
+        dices.append(1.0 - (2.0 * inter + 1.0) / (denom + 1.0))
+    if not dices:
+        return feats_all.sum() * 0.0
+    return torch.cat(dices).mean()
 
 
 def compute_losses(
@@ -94,7 +129,9 @@ def compute_losses(
     *,
     thing_pos_weight: torch.Tensor | None = None,
     stuff_class_weight: torch.Tensor | None = None,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    instance_targets: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None,
+    instance_loss_weight: float = 1.0,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """One forward pass + loss computation. Returns (total, stuff, thing),
     all still-differentiable scalars (caller does the backward pass).
 
@@ -146,8 +183,15 @@ def compute_losses(
         output.thing_heatmap, thing_heatmap_targets, pos_weight=pos_weight
     )
 
-    total_loss = stuff_loss_weight * stuff_loss + thing_loss_weight * thing_loss
-    return total_loss, stuff_loss, thing_loss
+    if instance_targets is not None:
+        inst_map, inst_ids, inst_centers = instance_targets
+        instance_loss = instance_dice_loss(output, inst_map, inst_ids, inst_centers)
+    else:
+        instance_loss = output.mask_features.sum() * 0.0
+
+    total_loss = (stuff_loss_weight * stuff_loss + thing_loss_weight * thing_loss
+                  + instance_loss_weight * instance_loss)
+    return total_loss, stuff_loss, thing_loss, instance_loss
 
 
 def train(
@@ -201,15 +245,18 @@ def train(
     history = TrainingHistory()
     for epoch in range(config.start_epoch, config.epochs + 1):
         epoch_start = time.monotonic()
-        total_losses, stuff_losses, thing_losses = [], [], []
+        total_losses, stuff_losses, thing_losses, instance_losses = [], [], [], []
         for step, batch in enumerate(loader, start=1):
             images, stuff_targets, thing_heatmap_targets = batch[0], batch[1], batch[2]
+            instance_targets = None
+            if len(batch) == 6:
+                instance_targets = tuple(t.to(device, non_blocking=True) for t in batch[3:6])
             images = images.to(device, non_blocking=True)
             stuff_targets = stuff_targets.to(device, non_blocking=True)
             thing_heatmap_targets = thing_heatmap_targets.to(device, non_blocking=True)
 
             optimizer.zero_grad()
-            total_loss, stuff_loss, thing_loss = compute_losses(
+            total_loss, stuff_loss, thing_loss, instance_loss = compute_losses(
                 model,
                 images,
                 stuff_targets,
@@ -218,6 +265,8 @@ def train(
                 thing_loss_weight=config.thing_loss_weight,
                 thing_pos_weight=thing_pos_weight,
                 stuff_class_weight=stuff_class_weight,
+                instance_targets=instance_targets,
+                instance_loss_weight=config.instance_loss_weight,
             )
             total_loss.backward()
             optimizer.step()
@@ -225,6 +274,7 @@ def train(
             total_losses.append(total_loss.item())
             stuff_losses.append(stuff_loss.item())
             thing_losses.append(thing_loss.item())
+            instance_losses.append(instance_loss.item())
 
             if step % config.log_every_n_steps == 0:
                 elapsed = time.monotonic() - epoch_start
@@ -240,6 +290,7 @@ def train(
             mean_loss=sum(total_losses) / len(total_losses),
             mean_stuff_loss=sum(stuff_losses) / len(stuff_losses),
             mean_thing_loss=sum(thing_losses) / len(thing_losses),
+            mean_instance_loss=sum(instance_losses) / len(instance_losses),
             num_batches=len(total_losses),
             elapsed_seconds=epoch_elapsed,
         )

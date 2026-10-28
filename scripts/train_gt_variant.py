@@ -59,7 +59,7 @@ def main() -> None:
     ap.add_argument("--epochs", type=int, default=150)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--lr", type=float, default=1e-3)
-    ap.add_argument("--stuff-weights", type=float, nargs=3, default=[1.0, 4.0, 0.3], metavar=("RIVER", "SDZI", "NONE"))
+    ap.add_argument("--stuff-weights", type=float, nargs=3, default=[1.0, 1.0, 1.0], metavar=("RIVER", "ROAD", "NONE"))
     ap.add_argument("--save-every", type=int, default=10)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--threads", type=int, default=0, help="torch threads (0 = all cores).")
@@ -70,6 +70,9 @@ def main() -> None:
     ap.add_argument("--encoder-lr-mult", type=float, default=None,
                     help="Backbone LR multiplier (default 0.1 for resnet18, 1.0 for placeholder).")
     ap.add_argument("--masks", type=Path, default=None, help="Folder of semantic PNG masks (e.g. SAM) for the stuff target.")
+    ap.add_argument("--instances", type=Path, default=None,
+                    help="Folder of uint16 instance-id PNGs (sam_from_boxes.py --save-instances). Enables the per-instance Dice loss.")
+    ap.add_argument("--instance-weight", type=float, default=1.0, help="Weight of the per-instance Dice loss.")
     ap.add_argument("--device", default="auto", help="auto, cpu, cuda")
     ap.add_argument("--num-workers", type=int, default=None, help="DataLoader workers (default 4 on cuda, 0 on cpu).")
     args = ap.parse_args()
@@ -82,7 +85,8 @@ def main() -> None:
     encoder_lr_mult = args.encoder_lr_mult if args.encoder_lr_mult is not None else (0.1 if args.encoder == "resnet18" else 1.0)
     print(f"device={device}" + (f" ({torch.cuda.get_device_name(0)})" if device == "cuda" else ""))
     manifest = load_yolo_manifest(args.data)
-    dataset = ManifestSegmentationDataset(manifest, split="train", class_split=DEFAULT_CLASS_SPLIT, stuff_mask_dir=args.masks)
+    dataset = ManifestSegmentationDataset(manifest, split="train", class_split=DEFAULT_CLASS_SPLIT,
+                                          stuff_mask_dir=args.masks, instance_mask_dir=args.instances)
     train_counts = {}
     for frame in manifest.frames_by_split["train"]:
         for box in frame.boxes:
@@ -129,6 +133,7 @@ def main() -> None:
         checkpoint_dir=args.out,
         thing_pos_weight=thing_pos_weight,
         stuff_class_weight=list(args.stuff_weights),
+        instance_loss_weight=args.instance_weight,
         save_every_n_epochs=args.save_every,
         seed=args.seed,
         log_every_n_steps=50,
@@ -170,9 +175,10 @@ def main() -> None:
     with open(log_path, "w" if new_file else "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if new_file:
-            writer.writerow(["epoch", "mean_loss", "stuff_loss", "thing_loss", "minutes"])
+            writer.writerow(["epoch", "mean_loss", "stuff_loss", "thing_loss", "instance_loss", "minutes"])
         for e in history.epochs:
-            writer.writerow([e.epoch, f"{e.mean_loss:.5f}", f"{e.mean_stuff_loss:.5f}", f"{e.mean_thing_loss:.5f}", f"{e.elapsed_seconds / 60:.2f}"])
+            writer.writerow([e.epoch, f"{e.mean_loss:.5f}", f"{e.mean_stuff_loss:.5f}", f"{e.mean_thing_loss:.5f}",
+                             f"{e.mean_instance_loss:.5f}", f"{e.elapsed_seconds / 60:.2f}"])
     print(f"Done. Checkpoints and train_log.csv in {args.out}")
 
 

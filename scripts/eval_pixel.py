@@ -47,7 +47,7 @@ sys.path.insert(0, str(REPO / "src"))
 import cv2  # noqa: E402
 import numpy as np  # noqa: E402
 
-GT_IDS = {"river": 3, "SDZI": 4}
+GT_IDS = {"river": 3, "road": 2}
 IGNORE = 255
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 
@@ -73,8 +73,8 @@ def score_frame(pred: dict[str, np.ndarray], gt: np.ndarray, min_area: float, co
         row[f"{name}_gt_found"] = sum(int((c & p).sum() >= cover * c.sum()) for c in gcomp)
         row[f"{name}_pred_regions"] = len(pcomp)
         row[f"{name}_pred_correct"] = sum(int((c & g).sum() >= cover * c.sum()) for c in pcomp)
-    row["sdzi_false_alarm_frame"] = int(row["SDZI_gt_regions"] == 0 and row["SDZI_pred_regions"] > 0)
-    row["has_gt_sdzi"] = int(row["SDZI_gt_regions"] > 0)
+    row["sdzi_false_alarm_frame"] = int(row["road_gt_regions"] == 0 and row["road_pred_regions"] > 0)
+    row["has_gt_sdzi"] = int(row["road_gt_regions"] > 0)
     return row
 
 
@@ -142,16 +142,15 @@ def main() -> None:
         from panoptic_mining.inference import load_model, predict
 
         river_i = DEFAULT_CLASS_SPLIT.stuff_index["river"]
-        sdzi_i = DEFAULT_CLASS_SPLIT.stuff_index["SDZI"]
+        road_i = DEFAULT_CLASS_SPLIT.stuff_index["road"]
         for item in args.checkpoint:
             name, _, path = item.partition("=")
             model = load_model(path, device=device)
 
             def run(img_path, model=model):
                 p = predict(model, img_path, device=device)
-                sdzi = (p.stuff_probs[sdzi_i] >= args.sdzi_threshold) if args.sdzi_threshold is not None \
-                    else (p.stuff_argmax == sdzi_i)
-                return {"river": p.stuff_argmax == river_i, "SDZI": sdzi}
+                road = (p.stuff_argmax == road_i)
+                return {"river": p.stuff_argmax == river_i, "road": road}
             predictors[name] = run
     for item in args.yolo:
         from ultralytics import YOLO
@@ -206,7 +205,7 @@ def main() -> None:
         for k, img_path in enumerate(frames, 1):
             gt = cv2.imread(str(args.gt / f"{img_path.stem}.png"), cv2.IMREAD_UNCHANGED)
             pred = run(img_path)
-            if pred["SDZI"].shape != gt.shape:
+            if pred["road"].shape != gt.shape:
                 pred = {key: cv2.resize(v.astype(np.uint8), (gt.shape[1], gt.shape[0]), interpolation=cv2.INTER_NEAREST).astype(bool)
                         for key, v in pred.items()}
             row = {"model": name, "frame": img_path.stem, **score_frame(pred, gt, args.min_area, args.cover)}
@@ -214,9 +213,9 @@ def main() -> None:
                 vw, vh = args.vis_width, int(round(gt.shape[0] * args.vis_width / gt.shape[1]))
                 lab = np.zeros(gt.shape, np.uint8)
                 lab[pred["river"]] = 3
-                lab[pred["SDZI"]] = 4
+                lab[pred["road"]] = 2
                 if img_path.stem not in vis:
-                    g = np.where(np.isin(gt, (3, 4, IGNORE)), gt, 0).astype(np.uint8)
+                    g = np.where(np.isin(gt, (2, 3, IGNORE)), gt, 0).astype(np.uint8)
                     vis[img_path.stem] = [("ground truth (manual)", cv2.resize(g, (vw, vh), interpolation=cv2.INTER_NEAREST))]
                 vis[img_path.stem].append((name, cv2.resize(lab, (vw, vh), interpolation=cv2.INTER_NEAREST)))
             rows.append(row)
@@ -226,7 +225,7 @@ def main() -> None:
         summary[name] = summarize(rows, args.bootstrap, args.seed)
 
     if args.save_vis:
-        colors = {3: (255, 255, 0), 4: (255, 0, 255), IGNORE: (128, 128, 128)}  # BGR: river cyan, SDZI magenta
+        colors = {3: (255, 255, 0), 2: (0, 255, 255), IGNORE: (128, 128, 128)}  # BGR: river cyan, road yellow
         (args.out / "vis").mkdir(exist_ok=True)
         for img_path in frames:
             panels_in = vis[img_path.stem]

@@ -42,6 +42,10 @@ class ClassSplit:
     stuff_class_names: list[str]
     thing_class_names: list[str]
     stuff_background_class_name: str | None = None
+    # Annotated classes that are neither stuff nor thing for training: their pixels get
+    # ignore (-1) in the stuff target and no heatmap. Taxonomy agreed with Juan Pablo
+    # (2026-10-22): SDZI is ignored for now.
+    ignore_class_names: tuple = ()
 
     @property
     def stuff_index(self) -> dict[str, int]:
@@ -59,9 +63,10 @@ class ClassSplit:
 
 
 DEFAULT_CLASS_SPLIT = ClassSplit(
-    stuff_class_names=["river", "SDZI", "none"],
-    thing_class_names=["vehicle", "building", "road"],
+    stuff_class_names=["river", "road", "none"],
+    thing_class_names=["vehicle", "building", "machinery"],
     stuff_background_class_name="none",
+    ignore_class_names=("SDZI",),
 )
 
 
@@ -86,7 +91,8 @@ def compute_thing_pos_weight(class_counts: dict[str, int], thing_class_names: li
 # Class ids of the semantic PNG masks written by scripts/sam_from_boxes.py
 # (--save-masks) and scripts/annotate_semantic.py: the YOLO ids of the
 # project plus 5 = background; 255 = unlabeled/ignore.
-SEMANTIC_MASK_CLASS_NAMES = ["vehicle", "building", "road", "river", "SDZI", "background"]
+# gt_manual ids: 0 vehicle, 1 building, 2 road, 3 river, 4 SDZI, 5 background, 6 machinery.
+SEMANTIC_MASK_CLASS_NAMES = ["vehicle", "building", "road", "river", "SDZI", "background", "machinery"]
 SEMANTIC_IGNORE = 255
 
 
@@ -108,6 +114,8 @@ def semantic_mask_to_stuff_target(
         raise ValueError("Mask targets need an explicit stuff background class")
     lut = np.full(256, -1, dtype=np.int64)
     for mask_id, name in enumerate(mask_class_names):
+        if name in class_split.ignore_class_names:
+            continue  # stays -1 (ignored)
         lut[mask_id] = class_split.stuff_index.get(name, background)
     lut[SEMANTIC_IGNORE] = -1
     full = lut[mask]
@@ -143,6 +151,7 @@ class ManifestSegmentationDataset(Dataset):
         target_stride: int = 8,
         return_thing_masks: bool = False,
         stuff_mask_dir: str | Path | None = None,
+        instance_mask_dir: str | Path | None = None,
     ):
         if split not in manifest.frames_by_split:
             raise ValueError(
@@ -157,6 +166,15 @@ class ManifestSegmentationDataset(Dataset):
         # DataLoader collate can't batch; they're also not used by the
         # current training loop. Off by default (2026-10-08).
         self.return_thing_masks = return_thing_masks
+        # If set, <instance_mask_dir>/<frame>.png is a uint16 instance-id map
+        # (see scripts/sam_from_boxes.py --save-instances). Id k = frame.boxes[k-1].
+        self.instance_mask_dir = Path(instance_mask_dir) if instance_mask_dir is not None else None
+        if self.instance_mask_dir is not None:
+            missing = [f.image_path for f in self.frames
+                       if not (self.instance_mask_dir / f"{Path(f.image_path).stem}.png").exists()]
+            if missing:
+                raise FileNotFoundError(
+                    f"{len(missing)} frames have no instance mask in {self.instance_mask_dir} (e.g. {missing[:3]})")
         # If set, the stuff target comes from <stuff_mask_dir>/<frame>.png
         # (e.g. SAM pseudo-masks) instead of filled box rectangles. Thing
         # heatmaps still come from the boxes. Every frame must have a mask.
@@ -171,6 +189,51 @@ class ManifestSegmentationDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.frames)
+
+    MAX_INSTANCES_PER_FRAME = 64
+
+    def _instance_sample(self, frame, boxes_pixels, image_tensor, stuff_target, thing_heatmap):
+        """Returns the 6-tuple (image, stuff, heatmap, inst_map, inst_ids, inst_centers).
+
+        inst_map: (H', W') long, instance ids at feature resolution (0 = none).
+        inst_ids: (MAX,) long, ids present in the frame, -1 padded.
+        inst_centers: (MAX, 2) long, (row, col) of each instance's heatmap peak
+        in feature coordinates (same center as gaussian_heatmap_targets), -1 padded.
+        """
+        path = self.instance_mask_dir / f"{Path(frame.image_path).stem}.png"
+        inst = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+        if inst is None or inst.ndim != 2:
+            raise RuntimeError(f"Could not read instance mask: {path}")
+        inst_small = cv2.resize(inst, (self.target_width, self.target_height),
+                                interpolation=cv2.INTER_NEAREST).astype(np.int64)
+        if inst_small.max(initial=0) > len(boxes_pixels):
+            raise RuntimeError(f"{path}: instance id {int(inst.max())} > {len(boxes_pixels)} boxes in the label file")
+
+        ids, centers = [], []
+        thing_names = self.class_split.thing_index
+        for k, (name, (x0, y0, x1, y1)) in enumerate(boxes_pixels, 1):
+            if name not in thing_names:
+                continue
+            row = int(np.clip(round((y0 + y1) / 2.0), 0, self.target_height - 1))
+            col = int(np.clip(round((x0 + x1) / 2.0), 0, self.target_width - 1))
+            ids.append(k)
+            centers.append((row, col))
+        if len(ids) > self.MAX_INSTANCES_PER_FRAME:
+            raise RuntimeError(f"{frame.image_path}: {len(ids)} thing instances > MAX_INSTANCES_PER_FRAME")
+
+        inst_ids = torch.full((self.MAX_INSTANCES_PER_FRAME,), -1, dtype=torch.long)
+        inst_centers = torch.full((self.MAX_INSTANCES_PER_FRAME, 2), -1, dtype=torch.long)
+        if ids:
+            inst_ids[:len(ids)] = torch.tensor(ids, dtype=torch.long)
+            inst_centers[:len(ids)] = torch.tensor(centers, dtype=torch.long)
+        return (
+            image_tensor,
+            torch.from_numpy(stuff_target).long(),
+            torch.from_numpy(thing_heatmap).float(),
+            torch.from_numpy(inst_small),
+            inst_ids,
+            inst_centers,
+        )
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         frame = self.frames[idx]
@@ -205,9 +268,18 @@ class ManifestSegmentationDataset(Dataset):
                 self.class_split.stuff_index,
                 background_index=self.class_split.stuff_background_index,
             )
+            ignore_boxes = [b for b in boxes_pixels if b[0] in self.class_split.ignore_class_names]
+            if ignore_boxes:
+                ign = rasterize_boxes_to_class_map(
+                    ignore_boxes, self.target_height, self.target_width,
+                    {n: 0 for n in self.class_split.ignore_class_names}, background_index=None)
+                stuff_target[ign == 0] = -1
         thing_heatmap = gaussian_heatmap_targets(
             boxes_pixels, self.target_height, self.target_width, self.class_split.thing_index
         )
+
+        if self.instance_mask_dir is not None:
+            return self._instance_sample(frame, boxes_pixels, image_tensor, stuff_target, thing_heatmap)
 
         if not self.return_thing_masks:
             return (

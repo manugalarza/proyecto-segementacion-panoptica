@@ -1,4 +1,4 @@
-"""Thing-branch evaluation (vehicle / building / road) against gt_manual.
+"""Thing-branch evaluation (vehicle / building / machinery) against gt_manual.
 
 The thing branch currently predicts CENTER HEATMAPS only (no per-instance
 masks: the kernel x mask-feature loss is not implemented yet). So this
@@ -39,8 +39,8 @@ import torch.nn.functional as F  # noqa: E402
 from panoptic_mining.data.torch_dataset import DEFAULT_CLASS_SPLIT  # noqa: E402
 from panoptic_mining.inference import load_image_like_training, load_model  # noqa: E402
 
-GT_IDS = {"vehicle": 0, "building": 1, "road": 2}
-COLORS = {"vehicle": (0, 0, 255), "building": (255, 128, 0), "road": (0, 255, 255)}  # BGR
+GT_IDS = {"vehicle": 0, "building": 1, "machinery": 6}  # gt_manual ids
+COLORS = {"vehicle": (0, 0, 255), "building": (255, 128, 0), "machinery": (255, 0, 255)}  # BGR
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 
 
@@ -117,7 +117,7 @@ def main() -> None:
                         for x, y, s in peaks[c]:
                             cv2.circle(img, (x, y), 14, (0, 0, 0), -1)
                             cv2.circle(img, (x, y), 10, COLORS[c], -1)
-                    cv2.putText(img, f"{name}  thr={thr}  contour=GT  dot=prediction  red=vehicle blue=building yellow=road",
+                    cv2.putText(img, f"{name}  thr={thr}  contour=GT  dot=prediction  red=vehicle blue=building magenta=machinery",
                                 (12, 36), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
                     (args.out / "vis" / name).mkdir(parents=True, exist_ok=True)
                     cv2.imwrite(str(args.out / "vis" / name / f"{p.stem}.jpg"),

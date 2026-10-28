@@ -50,6 +50,8 @@ BACKGROUND_ID = 5
 PAINT_PRIORITY = {3: 0, 2: 1, 1: 2, 0: 3, 4: 4}
 
 
+THING_CLASS_IDS = {0, 1, 5}  # YOLO ids: vehicle, building, machinery
+
 def panel(image, boxes, masks, title):
     h, w = image.shape[:2]
     overlay = image.copy()
@@ -80,6 +82,8 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--panel-width", type=int, default=960)
     ap.add_argument("--save-masks", type=Path, default=None, help="Folder for semantic PNG pseudo-masks.")
+    ap.add_argument("--save-instances", type=Path, default=None,
+                    help="Folder for uint16 instance-id PNGs: thing boxes get id = 1-based box index in the label file, 0 elsewhere.")
     ap.add_argument("--mask-from", default=None, help="Label set used for --save-masks (default: first --labels).")
     ap.add_argument("--no-panels", action="store_true", help="Skip the review JPGs (faster for full runs).")
     args = ap.parse_args()
@@ -102,6 +106,8 @@ def main() -> None:
     mask_from = args.mask_from or next(iter(label_sets))
     if args.save_masks is not None:
         args.save_masks.mkdir(parents=True, exist_ok=True)
+    if args.save_instances is not None:
+        args.save_instances.mkdir(parents=True, exist_ok=True)
 
     model = SAM(args.model)
     rows = []
@@ -131,6 +137,12 @@ def main() -> None:
                 for (cls, *_), m in sorted(zip(boxes, masks), key=lambda bm: PAINT_PRIORITY.get(bm[0][0], 0)):
                     sem[m] = cls
                 cv2.imwrite(str(args.save_masks / f"{img_path.stem}.png"), sem)
+            if args.save_instances is not None and name == mask_from:
+                inst = np.zeros((h, w), np.uint16)
+                for idx, ((cls, *_), m) in enumerate(zip(boxes, masks), 1):
+                    if cls in THING_CLASS_IDS:
+                        inst[m] = idx
+                cv2.imwrite(str(args.save_instances / f"{img_path.stem}.png"), inst)
             if not args.no_panels:
                 p = panel(image, boxes, masks, f"{img_path.stem} | {name}: box + SAM ({args.model})")
                 panels.append(cv2.resize(p, (args.panel_width, int(p.shape[0] * args.panel_width / p.shape[1]))))
