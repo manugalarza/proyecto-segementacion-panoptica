@@ -87,7 +87,10 @@ class TrainingHistory:
 
 
 def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor:
-    """Per-instance Dice (Panoptic FCN kernel x feature loss).
+    """Per-instance BCE + Dice (Panoptic FCN kernel x feature loss).
+
+    BCE is added because Dice alone collapsed to empty masks on a one-frame
+    overfit test (dice stuck at 0.987); BCE gives the sigmoid a gradient.
 
     For each thing instance in the frame, its kernel is read at its heatmap
     peak (inst_centers), applied to the shared mask-feature map, and the
@@ -110,10 +113,12 @@ def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor
         keep = target.flatten(1).sum(1) > 0
         if not bool(keep.any()):
             continue
-        pred, target = pred[keep], target[keep]
+        logits, target = logits[keep], target[keep]
+        pred = torch.sigmoid(logits)
+        bce = nn.functional.binary_cross_entropy_with_logits(logits, target, reduction="none").flatten(1).mean(1)
         inter = (pred * target).flatten(1).sum(1)
         denom = pred.flatten(1).sum(1) + target.flatten(1).sum(1)
-        dices.append(1.0 - (2.0 * inter + 1.0) / (denom + 1.0))
+        dices.append(bce + 1.0 - (2.0 * inter + 1.0) / (denom + 1.0))
     if not dices:
         return feats_all.sum() * 0.0
     return torch.cat(dices).mean()
