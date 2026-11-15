@@ -52,7 +52,7 @@ import torch
 from panoptic_mining.data.manifest import load_yolo_manifest
 from panoptic_mining.data.torch_dataset import DEFAULT_CLASS_SPLIT
 from panoptic_mining.models.context_fusion import ContextFusionPanopticFCN
-from panoptic_mining.models.panoptic_fcn import PanopticFCN
+from panoptic_mining.models.panoptic_fcn import PanopticFCN, build_encoder
 
 # BGR (OpenCV convention), chosen to be visually distinct from each other.
 STUFF_COLORS = {
@@ -163,9 +163,12 @@ def overlay_predictions(image: np.ndarray, model, class_split, score_threshold: 
 def load_model(checkpoint_path: Path, class_split, context_fusion: bool):
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     model_cls = ContextFusionPanopticFCN if context_fusion else PanopticFCN
+    is_resnet = any(k.startswith('encoder.layer1.') for k in checkpoint['model_state_dict'])
+    kwargs = {'encoder': build_encoder('resnet18', resnet_weights=None)} if is_resnet else {}
     model = model_cls(
         num_stuff_classes=len(class_split.stuff_class_names),
         num_thing_classes=len(class_split.thing_class_names),
+        **kwargs,
     )
     model.load_state_dict(checkpoint["model_state_dict"])
     print(f"Loaded checkpoint: epoch {checkpoint['epoch']}, mean_loss={checkpoint['mean_loss']:.4f}")

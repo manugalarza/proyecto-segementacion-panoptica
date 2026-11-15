@@ -59,10 +59,13 @@ def load_model(checkpoint_path: str | Path, class_split: ClassSplit = DEFAULT_CL
         num_thing_classes=len(class_split.thing_class_names),
         # weights=None: the checkpoint already holds the trained backbone, no download needed
         encoder=build_encoder(encoder_name, resnet_weights=None),
+        rel_coords=bool(config.get("rel_coords", False)),
     )
     state = checkpoint["model_state_dict"] if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint else checkpoint
     model.load_state_dict(state)
     model.to(device).eval()
+    # (height, width) used in training; checkpoints older than 2026-11-10 used 512x512.
+    model.image_size = tuple(config.get("image_size", (512, 512)))
     return model
 
 

@@ -20,10 +20,12 @@ Usage (repo root, Windows; ultralytics downloads the SAM weights the first time)
 Models: mobile_sam.pt (fast), sam_b.pt (better, still OK on CPU), sam2_t.pt / sam2_b.pt.
 On a machine with an NVIDIA GPU pass --device 0.
 
---save-masks DIR also writes one semantic PNG per image (training pseudo-labels,
-same format as annotate_semantic.py): pixel = YOLO class id where SAM put a mask,
-5 = background everywhere else (including the part of a box SAM left out),
-255 never used. Built from ONE label set (--mask-from, default: the first
+--save-masks DIR also writes one semantic PNG per image (training pseudo-labels),
+using the gt_manual convention (same as eval_full.py --gt):
+  vehicle 0, building 1, road 2, river 3, SDZI 4, background 5, machinery 6, ignore 255.
+Pixel = class where SAM put a mask; 5 = background everywhere else (including the
+part of a box SAM left out). YOLO machinery (id 5) is written as 6, so it never
+collides with background. Built from ONE label set (--mask-from, default: the first
 --labels). Overlaps are resolved by a fixed priority, not by file order:
 river < road < building < vehicle < SDZI (SDZI painted last, so it wins over river).
 """
@@ -46,6 +48,7 @@ from draw_yolo_labels import CLASS_COLORS, CLASS_NAMES, read_yolo_labels  # noqa
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 BACKGROUND_ID = 5
+MACHINERY_SEM_ID = 6  # gt_manual convention; YOLO machinery is class 5
 # paint order for --save-masks (higher = painted later = wins): river 3, road 2, building 1, vehicle 0, SDZI 4
 PAINT_PRIORITY = {3: 0, 2: 1, 1: 2, 0: 3, 4: 4}
 
@@ -135,7 +138,7 @@ def main() -> None:
             if args.save_masks is not None and name == mask_from:
                 sem = np.full((h, w), BACKGROUND_ID, dtype=np.uint8)
                 for (cls, *_), m in sorted(zip(boxes, masks), key=lambda bm: PAINT_PRIORITY.get(bm[0][0], 0)):
-                    sem[m] = cls
+                    sem[m] = MACHINERY_SEM_ID if cls == 5 else cls
                 cv2.imwrite(str(args.save_masks / f"{img_path.stem}.png"), sem)
             if args.save_instances is not None and name == mask_from:
                 inst = np.zeros((h, w), np.uint16)

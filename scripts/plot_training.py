@@ -66,7 +66,7 @@ def val_losses(run_dir: Path, info: dict, args, device: str) -> list[dict]:
         n = 0
         with torch.no_grad():
             for images, stuff_t, thing_t in loader:
-                t, s, h = compute_losses(model, images.to(device), stuff_t.to(device), thing_t.to(device),
+                t, s, h, _ = compute_losses(model, images.to(device), stuff_t.to(device), thing_t.to(device),
                                          thing_pos_weight=tw, stuff_class_weight=sw)
                 b = images.shape[0]
                 tot, st, th, n = tot + t.item() * b, st + s.item() * b, th + h.item() * b, n + b

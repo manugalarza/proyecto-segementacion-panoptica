@@ -48,6 +48,15 @@ def gt_instances(gt, cid, min_area):
     return [lab == i for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] >= min_area]
 
 
+def nms(preds, thr):
+    """Mask NMS: keep the highest-score prediction, drop any later one whose mask IoU with a kept one is >= thr."""
+    kept = []
+    for score, m in sorted(preds, key=lambda p: -p[0]):
+        if all(iou(m, k[1]) < thr for k in kept):
+            kept.append((score, m))
+    return kept
+
+
 def match(preds, gts, thr):
     """preds: list of (score, mask). Returns (score, tp) flags and matched IoUs."""
     flags, matched_ious = [], []
@@ -94,6 +103,8 @@ def aggregate_things(frames, idxs):
     for name in THING_GT:
         n_gt = sum(frames[i]["things"][name]["n_gt"] for i in idxs)
         n_pred = sum(frames[i]["things"][name]["n_pred"] for i in idxs)
+        n_pred_raw = sum(frames[i]["things"][name]["n_pred_raw"] for i in idxs)
+        dup_pairs = sum(frames[i]["things"][name]["dup_pairs_iou50"] for i in idxs)
         ap_by_thr = {}
         for thr in IOU_THRESHOLDS:
             key = f"{thr:.2f}"
@@ -104,6 +115,8 @@ def aggregate_things(frames, idxs):
         out[name] = {
             "n_gt": n_gt,
             "n_pred": n_pred,
+            "n_pred_raw": n_pred_raw,
+            "dup_pairs_iou50": dup_pairs,
             "AP50": ap_by_thr["0.50"],
             "AP75": ap_by_thr["0.75"],
             "AP50_75": float(np.mean(vals)) if vals else None,
@@ -155,6 +168,7 @@ def main():
     ap.add_argument("--score-threshold", type=float, default=0.05, help="Heatmap peak threshold")
     ap.add_argument("--top-k", type=int, default=50)
     ap.add_argument("--mask-threshold", type=float, default=0.5)
+    ap.add_argument("--nms-iou", type=float, default=0.5, help="Mask NMS IoU per class (0 disables)")
     ap.add_argument("--min-pred-area", type=int, default=20, help="Predicted instances smaller than this (px) are dropped")
     ap.add_argument("--min-gt-area", type=int, default=20, help="GT components smaller than this (px) are dropped")
     ap.add_argument("--bootstrap", type=int, default=1000)
@@ -207,12 +221,18 @@ def main():
                         mask = up > args.mask_threshold
                         if mask.sum() >= args.min_pred_area:
                             preds.append((score, mask))
+                    n_raw = len(preds)
+                    dup_pairs = sum(1 for a in range(len(preds)) for b in range(a + 1, len(preds))
+                                    if iou(preds[a][1], preds[b][1]) >= 0.5)
+                    if args.nms_iou > 0:
+                        preds = nms(preds, args.nms_iou)
                     flags = {}
                     for thr in IOU_THRESHOLDS:
                         flags[f"{thr:.2f}"] = match(preds, gts, thr)[0]
                     _, i50 = match(preds, gts, 0.5)
                     rec["things"][tname] = {
                         "n_gt": len(gts), "n_pred": len(preds),
+                        "n_pred_raw": n_raw, "dup_pairs_iou50": dup_pairs,
                         "flags": flags, "iou50": i50,
                     }
 

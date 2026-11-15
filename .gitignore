@@ -44,3 +44,6 @@ Thumbs.db
 
 # Configs locales
 configs/experiment.yaml
+
+# Local backups made before edits
+*.bak_*

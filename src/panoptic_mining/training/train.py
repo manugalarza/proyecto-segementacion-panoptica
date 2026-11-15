@@ -68,6 +68,17 @@ class TrainConfig:
     # the backbone gets learning_rate * encoder_lr_mult, the heads learning_rate.
     encoder_lr_mult: float = 1.0
     num_workers: int = 0
+    # Thing heatmap loss: "bce" (original) or "focal" (CenterNet penalty-reduced focal loss).
+    heatmap_loss: str = "bce"
+    # (height, width) the images are resized to; recorded so inference uses the same size.
+    image_size: tuple = (512, 512)
+    # "constant" (original) or "cosine": each param group's LR follows a cosine from its
+    # initial value at epoch 1 to lr_min_factor * initial at the last epoch, so the final
+    # checkpoint is not taken right after a loss spike. Resume-safe (computed from the epoch).
+    lr_schedule: str = "constant"
+    # Recorded so inference.load_model rebuilds the same kernel head (see PanopticFCN.rel_coords).
+    rel_coords: bool = False
+    lr_min_factor: float = 0.01
 
 
 @dataclass
@@ -86,7 +97,7 @@ class TrainingHistory:
     epochs: list[EpochMetrics] = field(default_factory=list)
 
 
-def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor:
+def instance_dice_loss(output, inst_map, inst_ids, inst_centers, mask_logits_fn=None) -> torch.Tensor:
     """Per-instance BCE + Dice (Panoptic FCN kernel x feature loss).
 
     BCE is added because Dice alone collapsed to empty masks on a one-frame
@@ -107,7 +118,10 @@ def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor
         ids = inst_ids[b][valid]
         cs = inst_centers[b][valid]
         kernels = kernels_all[b][:, cs[:, 0], cs[:, 1]].T  # (n, K)
-        logits = torch.einsum("nk,khw->nhw", kernels, feats_all[b])
+        if mask_logits_fn is not None:
+            logits = mask_logits_fn(kernels, feats_all[b], cs)
+        else:
+            logits = torch.einsum("nk,khw->nhw", kernels, feats_all[b])
         pred = torch.sigmoid(logits)
         target = (inst_map[b].unsqueeze(0) == ids.view(-1, 1, 1)).to(pred.dtype)
         keep = target.flatten(1).sum(1) > 0
@@ -124,6 +138,20 @@ def instance_dice_loss(output, inst_map, inst_ids, inst_centers) -> torch.Tensor
     return torch.cat(dices).mean()
 
 
+def centernet_focal_loss(logits: torch.Tensor, target: torch.Tensor, alpha: float = 2.0, beta: float = 4.0) -> torch.Tensor:
+    """Penalty-reduced pixel-wise focal loss (Zhou et al., CenterNet, 2019).
+    Positives are the cells where the target equals 1 (needs integer_center heatmaps);
+    negatives near a center are down-weighted by (1 - target)^beta. Normalized by the
+    number of positives, so sparse heatmaps are not dominated by background."""
+    pred = torch.sigmoid(logits).clamp(1e-4, 1 - 1e-4)
+    pos = target.eq(1).float()
+    neg = 1.0 - pos
+    pos_loss = torch.log(pred) * (1 - pred) ** alpha * pos
+    neg_loss = torch.log(1 - pred) * pred ** alpha * (1 - target) ** beta * neg
+    num_pos = pos.sum()
+    return -(pos_loss.sum() + neg_loss.sum()) / num_pos.clamp(min=1.0)
+
+
 def compute_losses(
     model: PanopticFCN,
     images: torch.Tensor,
@@ -136,6 +164,7 @@ def compute_losses(
     stuff_class_weight: torch.Tensor | None = None,
     instance_targets: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None,
     instance_loss_weight: float = 1.0,
+    heatmap_loss: str = "bce",
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """One forward pass + loss computation. Returns (total, stuff, thing),
     all still-differentiable scalars (caller does the backward pass).
@@ -184,13 +213,17 @@ def compute_losses(
     if thing_pos_weight is not None:
         pos_weight = thing_pos_weight.to(device=output.thing_heatmap.device, dtype=output.thing_heatmap.dtype)
         pos_weight = pos_weight.view(1, -1, 1, 1)
-    thing_loss = nn.functional.binary_cross_entropy_with_logits(
-        output.thing_heatmap, thing_heatmap_targets, pos_weight=pos_weight
-    )
+    if heatmap_loss == "focal":
+        thing_loss = centernet_focal_loss(output.thing_heatmap, thing_heatmap_targets)
+    else:
+        thing_loss = nn.functional.binary_cross_entropy_with_logits(
+            output.thing_heatmap, thing_heatmap_targets, pos_weight=pos_weight
+        )
 
     if instance_targets is not None:
         inst_map, inst_ids, inst_centers = instance_targets
-        instance_loss = instance_dice_loss(output, inst_map, inst_ids, inst_centers)
+        instance_loss = instance_dice_loss(output, inst_map, inst_ids, inst_centers,
+                                           mask_logits_fn=getattr(model, "instance_mask_logits", None))
     else:
         instance_loss = output.mask_features.sum() * 0.0
 
@@ -235,6 +268,7 @@ def train(
     else:
         param_groups = [{"params": list(model.parameters()), "lr": config.learning_rate}]
     optimizer = torch.optim.Adam(param_groups, lr=config.learning_rate)
+    base_lrs = [g["lr"] for g in optimizer.param_groups]  # before loading a resumed state
     if config.optimizer_state is not None:
         optimizer.load_state_dict(config.optimizer_state)
     thing_pos_weight = (
@@ -250,6 +284,12 @@ def train(
     history = TrainingHistory()
     for epoch in range(config.start_epoch, config.epochs + 1):
         epoch_start = time.monotonic()
+        if config.lr_schedule == "cosine":
+            import math
+            progress = (epoch - 1) / max(1, config.epochs - 1)
+            factor = config.lr_min_factor + (1 - config.lr_min_factor) * 0.5 * (1 + math.cos(math.pi * progress))
+            for g, base in zip(optimizer.param_groups, base_lrs):
+                g["lr"] = base * factor
         total_losses, stuff_losses, thing_losses, instance_losses = [], [], [], []
         for step, batch in enumerate(loader, start=1):
             images, stuff_targets, thing_heatmap_targets = batch[0], batch[1], batch[2]
@@ -272,6 +312,7 @@ def train(
                 stuff_class_weight=stuff_class_weight,
                 instance_targets=instance_targets,
                 instance_loss_weight=config.instance_loss_weight,
+                heatmap_loss=config.heatmap_loss,
             )
             total_loss.backward()
             optimizer.step()

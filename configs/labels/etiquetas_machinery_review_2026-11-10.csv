@@ -1,0 +1,5 @@
+nombre_frame,class,xc,yc,w,h,review_id,note
+video_11min_278,5,0.37695,0.73660,0.19610,0.16680,M3,tight box on the crusher; the original SDZI zone stays as class 4
+video_11min_279,5,0.43430,0.68475,0.19920,0.19290,M4,same crusher as M3 one frame later
+video_11min_558,5,0.79090,0.69405,0.24420,0.27570,M8,tight box on the crusher with conveyors
+video_11min_601,5,0.67750,0.44000,0.18500,0.22000,M9,crushing plant top right (box drawn by Claude, approved by Manu)

@@ -64,6 +64,58 @@ def html_table(headers: list[str], rows: list[list]) -> str:
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
+def _fmt(x, nd=3):
+    return "-" if x is None else f"{float(x):.{nd}f}"
+
+
+def _ci(ci: dict, key: str) -> str:
+    if not ci or key not in ci:
+        return "-"
+    lo, hi = ci[key]
+    return f"[{lo:.3f}, {hi:.3f}]"
+
+
+def full_eval_html(m: dict, title: str) -> str:
+    """Tables for eval_full.py output (things AP + stuff pixel metrics)."""
+    s = m.get("settings", {})
+    gt_name = Path(s.get("gt", "")).name or "?"
+    out = [f"<h3>{title}: things (AP estilo COCO, IoU 0.50 a 0.75)</h3>",
+           f"<p class='note'>Referencia: pseudo-GT de SAM ({gt_name}); imágenes: {s.get('images', '?')}. "
+           "A_full no tiene pérdida de instancia, así que su AP es cero por diseño; "
+           "su comparación debe hacerse con métricas de detección por centro.</p>"]
+    trows, srows = [], []
+    for model, r in m["models"].items():
+        ci = r.get("ci95", {})
+        th = r.get("things", {})
+        for cls in ("vehicle", "building", "machinery"):
+            c = th.get(cls)
+            if not isinstance(c, dict):
+                continue
+            if not c.get("n_gt"):
+                trows.append([model, cls, 0, c.get("n_pred"), "sin GT", "sin GT", "sin GT", "-"])
+                continue
+            trows.append([model, cls, c.get("n_gt"), c.get("n_pred"), _fmt(c.get("AP50")),
+                          _fmt(c.get("AP75")), _fmt(c.get("AP50_75")), _fmt(c.get("mean_matched_iou"))])
+        trows.append([model, "mAP (promedio de clases)", "", "", _fmt(th.get("mAP50")), _fmt(th.get("mAP75")),
+                      _fmt(th.get("mAP50_75")), f"IC 95% mAP50: {_ci(ci, 'mAP50')}"])
+        st = r.get("stuff", {})
+        for cls in ("river", "road"):
+            c = st.get(cls)
+            if not isinstance(c, dict):
+                continue
+            if c.get("pixel_recall") is None:
+                srows.append([model, cls, "sin GT", "sin GT", "sin GT", "sin GT", "-"])
+                continue
+            srows.append([model, cls, _fmt(c.get("IoU")), _fmt(c.get("Dice")), _fmt(c.get("pixel_precision")),
+                          _fmt(c.get("pixel_recall")), _ci(ci, f"{cls}_IoU")])
+    out.append("<h4>Things</h4>")
+    out.append(html_table(["Modelo", "Clase", "GT", "Predicciones", "AP50", "AP75", "AP50:75",
+                           "IoU medio emparejado"], trows))
+    out.append("<h4>Stuff (píxeles)</h4>")
+    out.append(html_table(["Modelo", "Clase", "IoU", "Dice", "Precisión píxel", "Recall píxel", "IC 95% IoU"], srows))
+    return "".join(out)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", action="append", required=True, help="NAME=FOLDER (repeatable)")
@@ -142,7 +194,9 @@ def main() -> None:
 
     for mpath in args.metrics:
         m = json.load(open(mpath, encoding="utf-8"))
-        if "models" in m and isinstance(m["models"], dict):
+        if "models" in m and isinstance(m["models"], dict) and any("things" in v for v in m["models"].values()):
+            metric_html += full_eval_html(m, Path(mpath).parent.name)
+        elif "models" in m and isinstance(m["models"], dict):
             s_ = m.get("settings", {})
             metric_html += (f"<h3>Evaluación de píxeles (gt_manual, {len(s_.get('frames', []))} frames)</h3>"
                             "<p>Región encontrada si la predicción cubre al menos el 30% de sus píxeles. "
@@ -165,7 +219,7 @@ def main() -> None:
         if files:
             step = max(1, len(files) // args.vis_n)
             picked = files[::step][: args.vis_n]
-            vis_html = "<p>Imagen | ground truth | un panel por modelo (río cian, carretera amarilla, gris = ignorado).</p>"
+            vis_html = "<p><em>Ilustrativo.</em> Izquierda: ground truth como cajas de las etiquetas YOLO (las cajas de stuff son rectángulos). Derecha: predicción como contornos de máscara con umbral de heatmap 0.3. No es una comparación pixel a pixel, y en estas imágenes la predicción de río y carretera casi no se ve.</p>"
             for f in picked:
                 mime = "image/jpeg" if f.suffix == ".jpg" else "image/png"
                 b64 = base64.b64encode(f.read_bytes()).decode()

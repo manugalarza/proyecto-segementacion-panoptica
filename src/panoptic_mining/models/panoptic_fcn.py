@@ -150,8 +150,18 @@ class PanopticFCN(nn.Module):
         num_thing_classes: int = 3,  # vehicle, building, road — see module docstring point 2
         kernel_dim: int = 64,
         encoder: nn.Module | None = None,
+        rel_coords: bool = False,
+        coord_scale: float = 16.0,
     ):
         super().__init__()
+        # rel_coords (added 2026-11-11): each instance kernel gets 4 extra weights applied to
+        # coordinates relative to its own center, (dx, dy, dx^2, dy^2) / coord_scale (feature
+        # cells). The quadratic terms let a kernel shape an elliptical prior around its object,
+        # so its mask no longer lights up on similar-looking objects elsewhere in the frame
+        # (same idea as the relative coordinates of CondInst / SOLO). The extra kernel channels
+        # start at zero, so training starts from the same function as without them.
+        self.rel_coords = rel_coords
+        self.coord_scale = coord_scale
         self.encoder = encoder or FeatureEncoder()
         feat_channels = self.encoder.out_channels
 
@@ -162,7 +172,11 @@ class PanopticFCN(nn.Module):
 
         self.stuff_head = nn.Conv2d(feat_channels, num_stuff_classes, kernel_size=1)
         self.thing_heatmap_head = nn.Conv2d(feat_channels, num_thing_classes, kernel_size=1)
-        self.kernel_head = nn.Conv2d(feat_channels, kernel_dim, kernel_size=1)
+        self.kernel_head = nn.Conv2d(feat_channels, kernel_dim + (4 if rel_coords else 0), kernel_size=1)
+        if rel_coords:
+            with torch.no_grad():
+                self.kernel_head.weight[kernel_dim:].zero_()
+                self.kernel_head.bias[kernel_dim:].zero_()
         self.mask_feature_head = nn.Sequential(
             nn.Conv2d(feat_channels, kernel_dim, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
@@ -177,6 +191,23 @@ class PanopticFCN(nn.Module):
             kernels=self.kernel_head(feats),
             mask_features=self.mask_feature_head(feats),
         )
+
+    def instance_mask_logits(self, kernels: torch.Tensor, mask_features: torch.Tensor,
+                             centers: torch.Tensor) -> torch.Tensor:
+        """kernels (n, Kc) read at the instance centers, mask_features (K, H, W),
+        centers (n, 2) as (row, col) in feature cells. Returns (n, H, W) mask logits."""
+        k = self.kernel_dim
+        logits = torch.einsum("nk,khw->nhw", kernels[:, :k], mask_features)
+        if self.rel_coords:
+            h, w = mask_features.shape[-2:]
+            ys = torch.arange(h, device=mask_features.device, dtype=mask_features.dtype).view(1, h, 1)
+            xs = torch.arange(w, device=mask_features.device, dtype=mask_features.dtype).view(1, 1, w)
+            c = centers.to(mask_features.dtype)
+            dy = (ys - c[:, 0].view(-1, 1, 1)) / self.coord_scale
+            dx = (xs - c[:, 1].view(-1, 1, 1)) / self.coord_scale
+            a = kernels[:, k:].view(-1, 4, 1, 1)
+            logits = logits + a[:, 0] * dx + a[:, 1] * dy + a[:, 2] * dx * dx + a[:, 3] * dy * dy
+        return logits
 
     def decode_instances(
         self,
@@ -215,9 +246,9 @@ class PanopticFCN(nn.Module):
             ys, xs, scores = ys[top_idx], xs[top_idx], top_scores
 
         mask_features = output.mask_features[0]  # (K, H', W')
-        instances = []
-        for y, x, score in zip(ys.tolist(), xs.tolist(), scores.tolist()):
-            kernel = output.kernels[0, :, y, x]  # (K,)
-            mask_logits = torch.einsum("k,khw->hw", kernel, mask_features)
-            instances.append((score, torch.sigmoid(mask_logits)))
-        return instances
+        if len(scores) == 0:
+            return []
+        kernels = output.kernels[0][:, ys, xs].T  # (n, Kc)
+        centers = torch.stack([ys, xs], dim=1)
+        masks = torch.sigmoid(self.instance_mask_logits(kernels, mask_features, centers))
+        return [(score, masks[i]) for i, score in enumerate(scores.tolist())]

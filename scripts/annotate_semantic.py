@@ -133,7 +133,7 @@ def read_yolo_boxes(path: Path, w: int, h: int):
         for line in path.read_text().splitlines():
             parts = line.split()
             if len(parts) >= 5:
-                c, xc, yc, bw, bh = int(parts[0]), *map(float, parts[1:5])
+                c, xc, yc, bw, bh = (6 if int(parts[0]) == 5 else int(parts[0])), *map(float, parts[1:5])  # YOLO machinery=5 -> gt machinery=6
                 boxes.append((c, (xc - bw / 2) * w, (yc - bh / 2) * h, (xc + bw / 2) * w, (yc + bh / 2) * h))
     return boxes
 

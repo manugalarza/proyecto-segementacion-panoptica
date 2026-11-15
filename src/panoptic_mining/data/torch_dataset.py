@@ -152,7 +152,13 @@ class ManifestSegmentationDataset(Dataset):
         return_thing_masks: bool = False,
         stuff_mask_dir: str | Path | None = None,
         instance_mask_dir: str | Path | None = None,
+        heatmap_integer_center: bool = False,
+        augment: bool = False,
     ):
+        self.heatmap_integer_center = heatmap_integer_center
+        # augment (2026-11-11): random flips, scale crop and color jitter, applied identically to
+        # the image, the stuff mask, the instance-id map and the boxes (train split only).
+        self.augment = augment
         if split not in manifest.frames_by_split:
             raise ValueError(
                 f"Split {split!r} not present in manifest (missing_splits={manifest.missing_splits})"
@@ -192,7 +198,7 @@ class ManifestSegmentationDataset(Dataset):
 
     MAX_INSTANCES_PER_FRAME = 64
 
-    def _instance_sample(self, frame, boxes_pixels, image_tensor, stuff_target, thing_heatmap):
+    def _instance_sample(self, frame, boxes_pixels, image_tensor, stuff_target, thing_heatmap, inst=None):
         """Returns the 6-tuple (image, stuff, heatmap, inst_map, inst_ids, inst_centers).
 
         inst_map: (H', W') long, instance ids at feature resolution (0 = none).
@@ -201,7 +207,8 @@ class ManifestSegmentationDataset(Dataset):
         in feature coordinates (same center as gaussian_heatmap_targets), -1 padded.
         """
         path = self.instance_mask_dir / f"{Path(frame.image_path).stem}.png"
-        inst = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+        if inst is None:
+            inst = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
         if inst is None or inst.ndim != 2:
             raise RuntimeError(f"Could not read instance mask: {path}")
         inst_small = cv2.resize(inst, (self.target_width, self.target_height),
@@ -211,9 +218,10 @@ class ManifestSegmentationDataset(Dataset):
 
         ids, centers = [], []
         thing_names = self.class_split.thing_index
-        for k, (name, (x0, y0, x1, y1)) in enumerate(boxes_pixels, 1):
-            if name not in thing_names:
-                continue
+        for k, (name, coords) in enumerate(boxes_pixels, 1):
+            if coords is None or name not in thing_names:
+                continue  # id k stays reserved: ids follow the label-file order
+            x0, y0, x1, y1 = coords
             row = int(np.clip(round((y0 + y1) / 2.0), 0, self.target_height - 1))
             col = int(np.clip(round((x0 + x1) / 2.0), 0, self.target_width - 1))
             ids.append(k)
@@ -235,28 +243,94 @@ class ManifestSegmentationDataset(Dataset):
             inst_centers,
         )
 
+    def _augment(self, image, mask, inst, boxes):
+        """boxes: [(class_name, (x0, y0, x1, y1) or None)] in pixels of ``image``. Uses the
+        ``random`` module (re-seeded per DataLoader worker by torch)."""
+        import random
+        h, w = image.shape[:2]
+        flip_h, flip_v = random.random() < 0.5, random.random() < 0.5
+        if flip_h or flip_v:
+            sl = (slice(None, None, -1) if flip_v else slice(None), slice(None, None, -1) if flip_h else slice(None))
+            image = np.ascontiguousarray(image[sl])
+            mask = None if mask is None else np.ascontiguousarray(mask[sl])
+            inst = None if inst is None else np.ascontiguousarray(inst[sl])
+            out = []
+            for name, b in boxes:
+                if b is None:
+                    out.append((name, None)); continue
+                x0, y0, x1, y1 = b
+                if flip_h:
+                    x0, x1 = w - x1, w - x0
+                if flip_v:
+                    y0, y1 = h - y1, h - y0
+                out.append((name, (x0, y0, x1, y1)))
+            boxes = out
+        if random.random() < 0.5:  # zoom in: crop 60-100% of each side, same aspect, random position
+            f = random.uniform(0.6, 1.0)
+            cw, ch = int(round(w * f)), int(round(h * f))
+            cx, cy = random.randint(0, w - cw), random.randint(0, h - ch)
+            image = image[cy:cy + ch, cx:cx + cw]
+            mask = None if mask is None else mask[cy:cy + ch, cx:cx + cw]
+            inst = None if inst is None else inst[cy:cy + ch, cx:cx + cw]
+            out = []
+            for name, b in boxes:
+                if b is None:
+                    out.append((name, None)); continue
+                x0, y0, x1, y1 = b
+                a0 = max(x1 - x0, 1e-6) * max(y1 - y0, 1e-6)
+                nx0, ny0 = max(x0 - cx, 0), max(y0 - cy, 0)
+                nx1, ny1 = min(x1 - cx, cw), min(y1 - cy, ch)
+                vis = max(nx1 - nx0, 0) * max(ny1 - ny0, 0)
+                out.append((name, (nx0, ny0, nx1, ny1) if vis >= 0.3 * a0 and nx1 - nx0 >= 2 and ny1 - ny0 >= 2 else None))
+            boxes = out
+        if random.random() < 0.8:  # color: brightness, contrast, saturation
+            img = image.astype(np.float32)
+            img = img * random.uniform(0.8, 1.2) + random.uniform(-20, 20)
+            mean = img.mean()
+            img = (img - mean) * random.uniform(0.8, 1.2) + mean
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+            hsv[..., 1] = np.clip(hsv[..., 1] * random.uniform(0.8, 1.2), 0, 255)
+            image = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+        return image, mask, inst, boxes
+
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         frame = self.frames[idx]
         image = cv2.imread(str(frame.image_path))
         if image is None:
             raise RuntimeError(f"Could not read image: {frame.image_path}")
+        h0, w0 = image.shape[:2]
+        boxes_orig = [(box.class_name, box.to_pixels(w0, h0)) for box in frame.boxes]
+        stem = Path(frame.image_path).stem
+        mask = inst = None
+        if self.stuff_mask_dir is not None:
+            mask_path = self.stuff_mask_dir / f"{stem}.png"
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_UNCHANGED)
+            if mask is None or mask.ndim != 2:
+                raise RuntimeError(f"Could not read single-channel mask: {mask_path}")
+        if self.instance_mask_dir is not None:
+            inst_path = self.instance_mask_dir / f"{stem}.png"
+            inst = cv2.imread(str(inst_path), cv2.IMREAD_UNCHANGED)
+            if inst is None or inst.ndim != 2:
+                raise RuntimeError(f"Could not read instance mask: {inst_path}")
+        if self.augment:
+            image, mask, inst, boxes_orig = self._augment(image, mask, inst, boxes_orig)
+
         orig_height, orig_width = image.shape[:2]
         image_resized = cv2.resize(image, (self.image_width, self.image_height))
         image_tensor = torch.from_numpy(image_resized).permute(2, 0, 1).float() / 255.0
 
         scale_x, scale_y = self.target_width / orig_width, self.target_height / orig_height
-        boxes_pixels = []
-        for box in frame.boxes:
-            x_min, y_min, x_max, y_max = box.to_pixels(orig_width, orig_height)
-            boxes_pixels.append(
-                (box.class_name, (x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y))
-            )
+        boxes_all = []  # aligned with the label file (instance ids); None = box dropped by the crop
+        for name, b in boxes_orig:
+            if b is None:
+                boxes_all.append((name, None))
+            else:
+                x_min, y_min, x_max, y_max = b
+                boxes_all.append((name, (x_min * scale_x, y_min * scale_y, x_max * scale_x, y_max * scale_y)))
+        boxes_pixels = [b for b in boxes_all if b[1] is not None]
 
-        if self.stuff_mask_dir is not None:
-            mask_path = self.stuff_mask_dir / f"{Path(frame.image_path).stem}.png"
-            mask = cv2.imread(str(mask_path), cv2.IMREAD_UNCHANGED)
-            if mask is None or mask.ndim != 2:
-                raise RuntimeError(f"Could not read single-channel mask: {mask_path}")
+        if mask is not None:
             stuff_target = semantic_mask_to_stuff_target(
                 mask, self.target_height, self.target_width, self.class_split
             )
@@ -275,11 +349,12 @@ class ManifestSegmentationDataset(Dataset):
                     {n: 0 for n in self.class_split.ignore_class_names}, background_index=None)
                 stuff_target[ign == 0] = -1
         thing_heatmap = gaussian_heatmap_targets(
-            boxes_pixels, self.target_height, self.target_width, self.class_split.thing_index
+            boxes_pixels, self.target_height, self.target_width, self.class_split.thing_index,
+            integer_center=self.heatmap_integer_center,
         )
 
         if self.instance_mask_dir is not None:
-            return self._instance_sample(frame, boxes_pixels, image_tensor, stuff_target, thing_heatmap)
+            return self._instance_sample(frame, boxes_all, image_tensor, stuff_target, thing_heatmap, inst)
 
         if not self.return_thing_masks:
             return (

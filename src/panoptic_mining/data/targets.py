@@ -80,6 +80,7 @@ def gaussian_heatmap_targets(
     width: int,
     class_name_to_index: dict[str, int],
     min_sigma: float = 1.0,
+    integer_center: bool = False,
 ) -> np.ndarray:
     """Build a (num_thing_classes, H, W) float32 heatmap target with a 2D
     Gaussian peak (value 1.0 at the center) at each box's center, sized
@@ -98,6 +99,11 @@ def gaussian_heatmap_targets(
             continue
         class_index = class_name_to_index[class_name]
         cx, cy = (x_min + x_max) / 2.0, (y_min + y_max) / 2.0
+        if integer_center:
+            # CenterNet convention: the peak (value exactly 1.0) sits on one grid cell, the
+            # same cell the instance kernel is read from (torch_dataset._instance_sample).
+            cx = float(np.clip(round(cx), 0, width - 1))
+            cy = float(np.clip(round(cy), 0, height - 1))
         box_w, box_h = max(x_max - x_min, 1.0), max(y_max - y_min, 1.0)
         sigma = max(min_sigma, 0.15 * min(box_w, box_h))
         peak = np.exp(-((xs - cx) ** 2 + (ys - cy) ** 2) / (2.0 * sigma**2))

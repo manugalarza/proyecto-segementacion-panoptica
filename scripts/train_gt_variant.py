@@ -73,6 +73,18 @@ def main() -> None:
     ap.add_argument("--instances", type=Path, default=None,
                     help="Folder of uint16 instance-id PNGs (sam_from_boxes.py --save-instances). Enables the per-instance Dice loss.")
     ap.add_argument("--instance-weight", type=float, default=1.0, help="Weight of the per-instance Dice loss.")
+    ap.add_argument("--image-size", type=int, nargs=2, default=[512, 512], metavar=("HEIGHT", "WIDTH"),
+                    help="Resize size for training (and, through the checkpoint, inference). Multiples of 32. "
+                         "512 512 = original; 576 1024 keeps the 16:9 aspect of the 1920x1080 frames.")
+    ap.add_argument("--augment", action="store_true",
+                    help="Random flips, zoom-in crop (60-100%%) and color jitter on the training images (2026-11-11).")
+    ap.add_argument("--rel-coords", action="store_true",
+                    help="Instance kernels also weight coordinates relative to their own center "
+                         "(dx, dy, dx^2, dy^2), so a mask stays near its object (CondInst-style).")
+    ap.add_argument("--lr-schedule", choices=["constant", "cosine"], default="constant",
+                    help="constant (original) or cosine decay to 1%% of the initial LR at the last epoch")
+    ap.add_argument("--heatmap-loss", choices=["bce", "focal"], default="bce",
+                    help="Thing heatmap loss: bce (original) or focal (CenterNet; integer-cell centers, bias init -2.19).")
     ap.add_argument("--device", default="auto", help="auto, cpu, cuda")
     ap.add_argument("--num-workers", type=int, default=None, help="DataLoader workers (default 4 on cuda, 0 on cpu).")
     args = ap.parse_args()
@@ -86,7 +98,10 @@ def main() -> None:
     print(f"device={device}" + (f" ({torch.cuda.get_device_name(0)})" if device == "cuda" else ""))
     manifest = load_yolo_manifest(args.data)
     dataset = ManifestSegmentationDataset(manifest, split="train", class_split=DEFAULT_CLASS_SPLIT,
-                                          stuff_mask_dir=args.masks, instance_mask_dir=args.instances)
+                                          stuff_mask_dir=args.masks, instance_mask_dir=args.instances,
+                                          heatmap_integer_center=args.heatmap_loss == "focal",
+                                          image_size=tuple(args.image_size),
+                                          augment=args.augment)
     train_counts = {}
     for frame in manifest.frames_by_split["train"]:
         for box in frame.boxes:
@@ -113,7 +128,10 @@ def main() -> None:
         num_stuff_classes=len(DEFAULT_CLASS_SPLIT.stuff_class_names),
         num_thing_classes=len(DEFAULT_CLASS_SPLIT.thing_class_names),
         encoder=encoder,
+        rel_coords=args.rel_coords,
     )
+    if args.heatmap_loss == "focal":
+        torch.nn.init.constant_(model.thing_heatmap_head.bias, -2.19)  # CenterNet prior: sigmoid = 0.1
     start_epoch, optimizer_state = 1, None
     existing = sorted(
         (int(p.stem.split("_")[1]), p) for p in args.out.glob("epoch_*.pt") if p.stem.split("_")[1].isdigit()
@@ -143,6 +161,10 @@ def main() -> None:
         encoder=args.encoder,
         encoder_lr_mult=encoder_lr_mult,
         num_workers=num_workers,
+        heatmap_loss=args.heatmap_loss,
+        image_size=tuple(args.image_size),
+        lr_schedule=args.lr_schedule,
+        rel_coords=args.rel_coords,
     )
     args.out.mkdir(parents=True, exist_ok=True)
     run_info = {
@@ -158,6 +180,11 @@ def main() -> None:
         "resnet_weights": args.resnet_weights if args.encoder == "resnet18" else None,
         "encoder_lr_mult": encoder_lr_mult,
         "stuff_target": f"masks: {args.masks}" if args.masks else "box rectangles",
+        "heatmap_loss": args.heatmap_loss,
+        "image_size": args.image_size,
+        "lr_schedule": args.lr_schedule,
+        "rel_coords": args.rel_coords,
+        "augment": args.augment,
         "device": device,
         "epochs": args.epochs,
         "batch_size": args.batch_size,
